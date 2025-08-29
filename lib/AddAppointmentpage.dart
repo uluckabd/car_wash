@@ -10,8 +10,14 @@ class AddAppointmentScreen extends StatefulWidget {
 }
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
-  String? _startTime; // Başlangıç saati
-  String? _endTime; // Bitiş saati
+  String? _startTime;
+  String? _endTime;
+
+  final isimController = TextEditingController();
+  final telefonController = TextEditingController();
+  final aracController = TextEditingController();
+  final ucretController = TextEditingController();
+  final notController = TextEditingController();
 
   final List<String> _timeSlots = List.generate(21, (index) {
     final hour = 8 + (index ~/ 2);
@@ -33,9 +39,24 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     })(),
   );
 
+  final List<String> gunler = [
+    "Pazartesi",
+    "Salı",
+    "Çarşamba",
+    "Perşembe",
+    "Cuma",
+    "Cumartesi",
+    "Pazar",
+  ];
+
   @override
   void dispose() {
     dateController.dispose();
+    isimController.dispose();
+    telefonController.dispose();
+    aracController.dispose();
+    ucretController.dispose();
+    notController.dispose();
     super.dispose();
   }
 
@@ -68,7 +89,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           labelText: label,
           labelStyle: const TextStyle(color: Colors.blueGrey),
           border: InputBorder.none,
-          focusedBorder: InputBorder.none, // <<< burayı değiştiriyoruz
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 18,
@@ -120,14 +140,21 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                buildTextField(label: 'İsim-soyisim'),
+                buildTextField(
+                  label: 'İsim-soyisim',
+                  controller: isimController,
+                ),
                 const SizedBox(height: 20),
                 buildTextField(
                   label: 'Telefon',
                   keyboardType: TextInputType.phone,
+                  controller: telefonController,
                 ),
                 const SizedBox(height: 20),
-                buildTextField(label: 'Araç Bilgisi'),
+                buildTextField(
+                  label: 'Araç Bilgisi',
+                  controller: aracController,
+                ),
                 const SizedBox(height: 20),
                 buildTextField(
                   label: 'Tarih',
@@ -161,9 +188,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           setState(() {
                             _startTime = value;
                             if (_endTime != null &&
-                                _endTime!.compareTo(_startTime!) < 0) {
+                                _endTime!.compareTo(_startTime!) < 0)
                               _endTime = null;
-                            }
                           });
                         },
                       ),
@@ -188,29 +214,27 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               ),
                             )
                             .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _endTime = value;
-                          });
-                        },
+                        onChanged: (value) => setState(() => _endTime = value),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                buildTextField(label: 'Ücret'),
+                buildTextField(label: 'Ücret', controller: ucretController),
                 const SizedBox(height: 20),
-                buildTextField(label: 'Not', maxLines: 3),
+                buildTextField(
+                  label: 'Not',
+                  maxLines: 3,
+                  controller: notController,
+                ),
                 const SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF90CAF9),
+                        backgroundColor: const Color(0xFF90CAF9),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 14,
@@ -226,11 +250,42 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        print('Başlangıç: $_startTime');
-                        print('Bitiş: $_endTime');
+                        if (_startTime == null || _endTime == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Lütfen başlangıç ve bitiş saatini seçin',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        // Tarihten gün adını hesapla
+                        final tarihParts = dateController.text.split('/');
+                        final gunTarihi = DateTime(
+                          int.parse(tarihParts[2]),
+                          int.parse(tarihParts[1]),
+                          int.parse(tarihParts[0]),
+                        );
+                        final gunAdi = gunler[gunTarihi.weekday - 1];
+
+                        final appointment = {
+                          "isimSoyisim": isimController.text,
+                          "telefon": telefonController.text,
+                          "arac": aracController.text,
+                          "tarih": dateController.text,
+                          "baslangic": _startTime,
+                          "bitis": _endTime,
+                          "ucret": ucretController.text,
+                          "not": notController.text,
+                          "gun": gunAdi, // Gün adını ekledik
+                        };
+
+                        Navigator.pop(context, appointment);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFFF0101),
+                        backgroundColor: const Color(0xFFFF0101),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 14,
