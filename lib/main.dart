@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'AddAppointmentpage.dart';
 import 'ArchiveScreen.dart';
+import 'database_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +36,23 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Map<String, dynamic>> randevular = [];
 
   final PageController pageController = PageController(initialPage: 0);
-  DateTime baseDate = DateTime.now(); // Başlangıç tarihi: bugün
+  DateTime baseDate = DateTime.now();
+
+  final dbService = DatabaseService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    final loadedAppointments = await dbService.getAppointments();
+    setState(() {
+      randevular.clear();
+      randevular.addAll(loadedAppointments);
+    });
+  }
 
   List<String> _generateTimeSlots() {
     List<String> slots = [];
@@ -50,7 +67,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return slots;
   }
 
-  /// Dinamik başlık: "Pazartesi - 01/09/2025"
   String getFormattedDate(DateTime date) {
     final weekdays = [
       "Pazartesi",
@@ -71,7 +87,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final pages = [
       Column(
         children: [
-          // Başlık: gün ve tarih
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -85,7 +100,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
-          // PageView: günleri kaydır
           Expanded(
             child: PageView.builder(
               controller: pageController,
@@ -96,7 +110,6 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               itemBuilder: (context, index) {
                 final currentDate = DateTime.now().add(Duration(days: index));
-                final gun = currentDate.weekday; // 1=Pazartesi ... 7=Pazar
                 final randevularBuGun = randevular.where((r) {
                   return r["tarih"] ==
                       "${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}";
@@ -136,14 +149,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      // Arama placeholder
       Column(
         children: [
           for (int i = 1; i <= 20; i++)
             ListTile(title: Text("Arama İçerik $i")),
         ],
       ),
-      // Arşiv placeholder
       Container(),
     ];
 
@@ -210,7 +221,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           );
           if (yeniRandevu != null) {
-            setState(() => randevular.add(yeniRandevu));
+            await dbService.addAppointment(yeniRandevu);
+            _loadAppointments();
           }
         },
         child: const Icon(Icons.add),

@@ -17,7 +17,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   final telefonController = TextEditingController();
   final aracController = TextEditingController();
   final ucretController = TextEditingController();
-  final notController = TextEditingController();
+  final notController =
+      TextEditingController(); // Bu controller'ın adı değişmedi
 
   final List<String> _timeSlots = List.generate(21, (index) {
     final hour = 8 + (index ~/ 2);
@@ -188,8 +189,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           setState(() {
                             _startTime = value;
                             if (_endTime != null &&
-                                _endTime!.compareTo(_startTime!) < 0)
+                                _endTime!.compareTo(_startTime!) < 0) {
                               _endTime = null;
+                            }
                           });
                         },
                       ),
@@ -278,8 +280,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           "baslangic": _startTime,
                           "bitis": _endTime,
                           "ucret": ucretController.text,
-                          "not": notController.text,
-                          "gun": gunAdi, // Gün adını ekledik
+                          "aciklama": notController
+                              .text, // Not alanını aciklama olarak değiştirdik
+                          "gun": gunAdi,
                         };
 
                         Navigator.pop(context, appointment);
