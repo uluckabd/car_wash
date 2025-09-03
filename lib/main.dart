@@ -140,29 +140,81 @@ class _MyHomePageState extends State<MyHomePage> {
                             )
                           : const Text("Boş"),
                       trailing: doluMu
-                          ? IconButton(
-                              icon: const Icon(
-                                Icons.edit,
-                                color: Colors.orange,
-                              ),
-                              onPressed: () async {
-                                final updatedAppointment = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AddAppointmentScreen(
-                                      appointmentData: randevuBilgi,
-                                    ),
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Düzenleme butonu
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.orange,
                                   ),
-                                );
+                                  onPressed: () async {
+                                    final updatedAppointment =
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                AddAppointmentScreen(
+                                                  appointmentData: randevuBilgi,
+                                                ),
+                                          ),
+                                        );
 
-                                if (updatedAppointment != null) {
-                                  await dbService.updateAppointment(
-                                    randevuBilgi['id'],
-                                    updatedAppointment,
-                                  );
-                                  _loadAppointments();
-                                }
-                              },
+                                    if (updatedAppointment != null) {
+                                      await dbService.updateAppointment(
+                                        randevuBilgi['id'],
+                                        updatedAppointment,
+                                      );
+                                      _loadAppointments();
+                                    }
+                                  },
+                                ),
+                                // Silme butonu (AlertDialog ile)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text("Randevuyu Sil"),
+                                        content: const Text(
+                                          "Bu randevuyu silmek istediğinize emin misiniz?",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text("Hayır"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text("Evet"),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+
+                                    if (confirm == true) {
+                                      await dbService.deleteAppointment(
+                                        randevuBilgi['id'],
+                                      );
+                                      _loadAppointments();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Randevu silindi"),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             )
                           : null,
                     );
