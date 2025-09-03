@@ -138,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       title: Text("$start - $end"),
                       subtitle: doluMu
                           ? Text(
-                              "${randevuBilgi["isimSoyisim"]} - ${randevuBilgi["telefon"]}",
+                              "${randevuBilgi["arac"]} - ${randevuBilgi["isimSoyisim"]} - ${randevuBilgi["telefon"]}",
                             )
                           : const Text("Boş"),
                     );
