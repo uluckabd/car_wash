@@ -67,84 +67,47 @@ class ArchiveScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ayGruplari = groupByMonth();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Arşiv',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: AppointmentSearch(randevular),
-              );
-            },
-          ),
-        ],
-      ),
-      body: ListView(
-        children: List.generate(12, (index) {
-          final monthNumber = index + 1;
-          final monthName = getMonthName(monthNumber);
-          final ayRandevulari = ayGruplari[monthNumber] ?? [];
-          final toplamUcret = calculateMonthTotal(ayRandevulari);
+    return ListView(
+      children: List.generate(12, (index) {
+        final monthNumber = index + 1;
+        final monthName = getMonthName(monthNumber);
+        final ayRandevulari = ayGruplari[monthNumber] ?? [];
+        final toplamUcret = calculateMonthTotal(ayRandevulari);
 
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-            child: ExpansionTile(
-              title: Text(
-                '$monthName (${ayRandevulari.length} randevu - Toplam: ${toplamUcret.toStringAsFixed(2)}₺)',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              children: ayRandevulari.isEmpty
-                  ? [const ListTile(title: Text('Bu ayda randevu yok'))]
-                  : groupByDay(ayRandevulari).entries
-                        .map(
-                          (gunEntry) => ExpansionTile(
-                            title: Text(
-                              '${gunEntry.key} (${gunEntry.value.length} randevu)',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            children: gunEntry.value.map((r) {
-                              return ListTile(
-                                leading: const Icon(Icons.access_time),
-                                title: Text(
-                                  '${r['baslangic']} - ${r['bitis']}',
-                                ),
-                                subtitle: Text(
-                                  '${r['isimSoyisim']} - ${r['telefon']} - ${r['arac']}',
-                                ),
-                                trailing: r['ucret'] != null
-                                    ? Text('${r['ucret']}₺')
-                                    : null,
-                              );
-                            }).toList(),
-                          ),
-                        )
-                        .toList(),
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+          child: ExpansionTile(
+            title: Text(
+              '$monthName (${ayRandevulari.length} randevu - Toplam: ${toplamUcret.toStringAsFixed(2)}₺)',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-          );
-        }),
-      ),
+            children: ayRandevulari.isEmpty
+                ? [const ListTile(title: Text('Bu ayda randevu yok'))]
+                : groupByDay(ayRandevulari).entries
+                      .map(
+                        (gunEntry) => ExpansionTile(
+                          title: Text(
+                            '${gunEntry.key} (${gunEntry.value.length} randevu)',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          children: gunEntry.value.map((r) {
+                            return ListTile(
+                              leading: const Icon(Icons.access_time),
+                              title: Text('${r['baslangic']} - ${r['bitis']}'),
+                              subtitle: Text(
+                                '${r['isimSoyisim']} - ${r['telefon']} - ${r['arac']}',
+                              ),
+                              trailing: r['ucret'] != null
+                                  ? Text('${r['ucret']}₺')
+                                  : null,
+                            );
+                          }).toList(),
+                        ),
+                      )
+                      .toList(),
+          ),
+        );
+      }),
     );
   }
 }
@@ -181,10 +144,16 @@ class AppointmentSearch extends SearchDelegate<Map<String, dynamic>> {
 
   @override
   Widget buildResults(BuildContext context) {
+    final lowerCaseQuery = query.toLowerCase();
     final results = randevular
         .where(
           (r) =>
-              r['arac'].toString().toLowerCase().contains(query.toLowerCase()),
+              (r['arac']?.toString().toLowerCase().contains(lowerCaseQuery) ??
+                  false) ||
+              (r['isimSoyisim']?.toString().toLowerCase().contains(
+                    lowerCaseQuery,
+                  ) ??
+                  false),
         )
         .toList();
 
@@ -193,8 +162,10 @@ class AppointmentSearch extends SearchDelegate<Map<String, dynamic>> {
       itemBuilder: (context, index) {
         final r = results[index];
         return ListTile(
-          title: Text(r['arac']),
-          subtitle: Text("${r['isimSoyisim']} - ${r['tarih']}"),
+          title: Text(r['arac'] ?? 'Araç Bilgisi Yok'),
+          subtitle: Text(
+            "${r['isimSoyisim'] ?? 'İsim Yok'} - ${r['tarih'] ?? 'Tarih Yok'}",
+          ),
         );
       },
     );
@@ -202,10 +173,16 @@ class AppointmentSearch extends SearchDelegate<Map<String, dynamic>> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    final lowerCaseQuery = query.toLowerCase();
     final suggestions = randevular
         .where(
           (r) =>
-              r['arac'].toString().toLowerCase().contains(query.toLowerCase()),
+              (r['arac']?.toString().toLowerCase().contains(lowerCaseQuery) ??
+                  false) ||
+              (r['isimSoyisim']?.toString().toLowerCase().contains(
+                    lowerCaseQuery,
+                  ) ??
+                  false),
         )
         .toList();
 
@@ -214,10 +191,12 @@ class AppointmentSearch extends SearchDelegate<Map<String, dynamic>> {
       itemBuilder: (context, index) {
         final r = suggestions[index];
         return ListTile(
-          title: Text(r['arac']),
-          subtitle: Text("${r['isimSoyisim']} - ${r['tarih']}"),
+          title: Text(r['arac'] ?? 'Araç Bilgisi Yok'),
+          subtitle: Text(
+            "${r['isimSoyisim'] ?? 'İsim Yok'} - ${r['tarih'] ?? 'Tarih Yok'}",
+          ),
           onTap: () {
-            query = r['arac'];
+            query = r['isimSoyisim'] ?? '';
             showResults(context);
           },
         );

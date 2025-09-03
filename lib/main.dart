@@ -83,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final slots = _generateTimeSlots();
 
     final pages = [
+      // Ana Sayfa
       Column(
         children: [
           Container(
@@ -143,7 +144,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           ? Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Düzenleme butonu
                                 IconButton(
                                   icon: const Icon(
                                     Icons.edit,
@@ -160,7 +160,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 ),
                                           ),
                                         );
-
                                     if (updatedAppointment != null) {
                                       await dbService.updateAppointment(
                                         randevuBilgi['id'],
@@ -170,7 +169,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                     }
                                   },
                                 ),
-                                // Silme butonu (AlertDialog ile)
                                 IconButton(
                                   icon: const Icon(
                                     Icons.delete,
@@ -198,7 +196,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ],
                                       ),
                                     );
-
                                     if (confirm == true) {
                                       await dbService.deleteAppointment(
                                         randevuBilgi['id'],
@@ -225,21 +222,16 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      Column(
-        children: [
-          for (int i = 1; i <= 20; i++)
-            ListTile(title: Text("Arama İçerik $i")),
-        ],
-      ),
-      Container(),
+      // Arşiv sayfası
+      ArchiveScreen(randevular: randevular),
     ];
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text(
-          "Car_Wash",
-          style: TextStyle(
+        title: Text(
+          selectedIndex == 0 ? "Car_Wash" : "Arşiv",
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 25,
@@ -254,6 +246,19 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ),
+        actions: selectedIndex == 1
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    showSearch(
+                      context: context,
+                      delegate: AppointmentSearch(randevular),
+                    );
+                  },
+                ),
+              ]
+            : null,
       ),
       body: pages[selectedIndex],
       bottomNavigationBar: Container(
@@ -268,22 +273,12 @@ class _MyHomePageState extends State<MyHomePage> {
           backgroundColor: Colors.transparent,
           currentIndex: selectedIndex,
           onTap: (index) {
-            if (index == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ArchiveScreen(randevular: randevular),
-                ),
-              );
-            } else {
-              setState(() => selectedIndex = index);
-            }
+            setState(() => selectedIndex = index);
           },
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white70,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
-            BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Arama'),
             BottomNavigationBarItem(icon: Icon(Icons.archive), label: 'Arşiv'),
           ],
         ),
