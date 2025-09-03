@@ -52,4 +52,18 @@ class DatabaseService {
     final db = await database;
     return await db.delete('appointments', where: 'id = ?', whereArgs: [id]);
   }
+
+  // 🔹 Yeni eklenen güncelleme fonksiyonu
+  Future<int> updateAppointment(
+    int id,
+    Map<String, dynamic> appointment,
+  ) async {
+    final db = await database;
+    return await db.update(
+      'appointments',
+      appointment,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

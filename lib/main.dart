@@ -34,10 +34,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int selectedIndex = 0;
   final List<Map<String, dynamic>> randevular = [];
-
   final PageController pageController = PageController(initialPage: 0);
   DateTime baseDate = DateTime.now();
-
   final dbService = DatabaseService();
 
   @override
@@ -141,6 +139,32 @@ class _MyHomePageState extends State<MyHomePage> {
                               "${randevuBilgi["arac"]} - ${randevuBilgi["isimSoyisim"]} - ${randevuBilgi["telefon"]}",
                             )
                           : const Text("Boş"),
+                      trailing: doluMu
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.orange,
+                              ),
+                              onPressed: () async {
+                                final updatedAppointment = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AddAppointmentScreen(
+                                      appointmentData: randevuBilgi,
+                                    ),
+                                  ),
+                                );
+
+                                if (updatedAppointment != null) {
+                                  await dbService.updateAppointment(
+                                    randevuBilgi['id'],
+                                    updatedAppointment,
+                                  );
+                                  _loadAppointments();
+                                }
+                              },
+                            )
+                          : null,
                     );
                   },
                 );
