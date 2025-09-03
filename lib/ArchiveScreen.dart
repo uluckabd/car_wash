@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'database_service.dart';
 
 class ArchiveScreen extends StatelessWidget {
   final List<Map<String, dynamic>> randevular;
@@ -85,6 +86,17 @@ class ArchiveScreen extends StatelessWidget {
             ),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: AppointmentSearch(randevular),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         children: List.generate(12, (index) {
@@ -133,6 +145,83 @@ class ArchiveScreen extends StatelessWidget {
           );
         }),
       ),
+    );
+  }
+}
+
+// ---------------------
+// Search Delegate Sınıfı
+// ---------------------
+class AppointmentSearch extends SearchDelegate<Map<String, dynamic>> {
+  final List<Map<String, dynamic>> randevular;
+
+  AppointmentSearch(this.randevular);
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, {});
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    final results = randevular
+        .where(
+          (r) =>
+              r['arac'].toString().toLowerCase().contains(query.toLowerCase()),
+        )
+        .toList();
+
+    return ListView.builder(
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final r = results[index];
+        return ListTile(
+          title: Text(r['arac']),
+          subtitle: Text("${r['isimSoyisim']} - ${r['tarih']}"),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = randevular
+        .where(
+          (r) =>
+              r['arac'].toString().toLowerCase().contains(query.toLowerCase()),
+        )
+        .toList();
+
+    return ListView.builder(
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        final r = suggestions[index];
+        return ListTile(
+          title: Text(r['arac']),
+          subtitle: Text("${r['isimSoyisim']} - ${r['tarih']}"),
+          onTap: () {
+            query = r['arac'];
+            showResults(context);
+          },
+        );
+      },
     );
   }
 }
