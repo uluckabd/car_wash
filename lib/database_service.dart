@@ -33,14 +33,41 @@ class DatabaseService {
         bitis TEXT,
         ucret TEXT,
         aciklama TEXT,
-        gun TEXT
+        gun TEXT,
+        normalizedSearch TEXT
       )
     ''');
   }
 
   Future<int> addAppointment(Map<String, dynamic> appointment) async {
     final db = await database;
-    return await db.insert('appointments', appointment);
+    final normalizedAppointment = _addNormalizedSearchField(appointment);
+    return await db.insert('appointments', normalizedAppointment);
+  }
+
+  Future<int> updateAppointment(
+    int id,
+    Map<String, dynamic> appointment,
+  ) async {
+    final db = await database;
+    final normalizedAppointment = _addNormalizedSearchField(appointment);
+    return await db.update(
+      'appointments',
+      normalizedAppointment,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> searchAppointments(String query) async {
+    final db = await database;
+    final normalizedQuery = _normalizeForSearch(query);
+
+    return await db.query(
+      'appointments',
+      where: 'normalizedSearch LIKE ?',
+      whereArgs: ['%$normalizedQuery%'],
+    );
   }
 
   Future<List<Map<String, dynamic>>> getAppointments() async {
@@ -53,17 +80,35 @@ class DatabaseService {
     return await db.delete('appointments', where: 'id = ?', whereArgs: [id]);
   }
 
-  // 🔹 Yeni eklenen güncelleme fonksiyonu
-  Future<int> updateAppointment(
-    int id,
+  // Yardımcı Metotlar
+
+  // Türkçe karakterleri arama için normalleştirir.
+  String _normalizeForSearch(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll('ç', 'c')
+        .replaceAll('ğ', 'g')
+        .replaceAll('ı', 'i')
+        .replaceAll('ö', 'o')
+        .replaceAll('ş', 's')
+        .replaceAll('ü', 'u');
+  }
+
+  // Kaydedilecek veriye normalleştirilmiş arama alanını ekler.
+  Map<String, dynamic> _addNormalizedSearchField(
     Map<String, dynamic> appointment,
-  ) async {
-    final db = await database;
-    return await db.update(
-      'appointments',
-      appointment,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+  ) {
+    final normalizedData = <String, dynamic>{...appointment};
+
+    // Aramak istediğin alanları burada birleştir.
+    final combinedText = [
+      normalizedData['isimSoyisim'],
+      normalizedData['arac'],
+      normalizedData['aciklama'],
+      normalizedData['gun'],
+    ].where((e) => e != null).join(' ');
+
+    normalizedData['normalizedSearch'] = _normalizeForSearch(combinedText);
+    return normalizedData;
   }
 }
