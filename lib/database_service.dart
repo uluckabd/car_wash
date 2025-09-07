@@ -82,7 +82,7 @@ class DatabaseService {
 
   // Yardımcı Metotlar
 
-  // Türkçe karakterleri arama için normalleştirir.
+  // Türkçe karakterleri arama için normalleştirme
   String _normalizeForSearch(String text) {
     return text
         .toLowerCase()
@@ -94,7 +94,7 @@ class DatabaseService {
         .replaceAll('ü', 'u');
   }
 
-  // Kaydedilecek veriye normalleştirilmiş arama alanını ekler.
+  // Kaydedilecek veriye normalleştirilmiş arama alanını ekleme
   Map<String, dynamic> _addNormalizedSearchField(
     Map<String, dynamic> appointment,
   ) {

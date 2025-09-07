@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'AddAppointmentpage.dart';
 import 'ArchiveScreen.dart';
 import 'database_service.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,6 +53,42 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // Yeni Fonksiyon: Takvimi Açıp Tarih Seçme
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: baseDate,
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2030),
+    );
+    if (pickedDate != null && pickedDate != baseDate) {
+      // Seçilen tarih ile bugünün arasındaki gün farkını hesapla
+      // Saat ve dakika farkını sıfırlayarak sadece gün farkına odaklan.
+      final today = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+      );
+      final pickedDay = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+      );
+      final int newPageIndex = pickedDay.difference(today).inDays;
+
+      // PageView'ı seçilen tarihin sayfasına kaydır
+      pageController.animateToPage(
+        newPageIndex,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+      );
+
+      setState(() {
+        baseDate = pickedDate;
+      });
+    }
+  }
+
   List<String> _generateTimeSlots() {
     List<String> slots = [];
     DateTime start = DateTime(2023, 1, 1, 8, 0);
@@ -90,13 +127,26 @@ class _MyHomePageState extends State<MyHomePage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             color: Colors.blueAccent,
-            child: Text(
-              getFormattedDate(baseDate),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  getFormattedDate(baseDate),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.calendar_month_outlined,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                  onPressed: () => _selectDate(context),
+                ),
+              ],
             ),
           ),
           Expanded(
