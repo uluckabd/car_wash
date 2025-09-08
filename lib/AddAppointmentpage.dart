@@ -1,9 +1,10 @@
+import 'package:car_wash/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
-  final Map<String, dynamic>? appointmentData; // Güncelleme için eklendi
+  final Map<String, dynamic>? appointmentData;
 
   const AddAppointmentScreen({super.key, this.appointmentData});
 
@@ -77,12 +78,41 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     super.dispose();
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFFF0101),
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (pickedDate != null) {
+      setState(() {
+        dateController.text =
+            '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
+      });
+    }
+  }
+
   Widget buildTextField({
     required String label,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
     TextEditingController? controller,
     int maxLines = 1,
+    bool readOnly = false,
+    Function()? onTap,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -98,6 +128,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         ],
       ),
       child: TextField(
+        readOnly: readOnly,
+        onTap: onTap,
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         controller: controller,
@@ -159,9 +191,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               const SizedBox(height: 20),
               buildTextField(
                 label: 'Tarih',
-                keyboardType: TextInputType.number,
                 controller: dateController,
-                inputFormatters: [dateMask],
+                readOnly: true,
+                onTap: () => _selectDate(context),
               ),
               const SizedBox(height: 20),
               Row(
@@ -251,7 +283,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_startTime == null || _endTime == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -270,6 +302,64 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         int.parse(tarihParts[0]),
                       );
                       final gunAdi = gunler[gunTarihi.weekday - 1];
+
+                      // Yeni randevu saatlerini DateTime nesnesine dönüştür
+                      final newStart = DateTime(
+                        gunTarihi.year,
+                        gunTarihi.month,
+                        gunTarihi.day,
+                        int.parse(_startTime!.split(':')[0]),
+                        int.parse(_startTime!.split(':')[1]),
+                      );
+
+                      final newEnd = DateTime(
+                        gunTarihi.year,
+                        gunTarihi.month,
+                        gunTarihi.day,
+                        int.parse(_endTime!.split(':')[0]),
+                        int.parse(_endTime!.split(':')[1]),
+                      );
+
+                      // O günkü mevcut randevuları çek
+                      final existingAppointments = await DatabaseService()
+                          .getAppointmentsByDate(dateController.text);
+
+                      // Mevcut randevularla çakışma kontrolü yap
+                      for (var appt in existingAppointments) {
+                        // Kendi randevumuzu güncelliyorsak kontrol dışında tut
+                        if (widget.appointmentData != null &&
+                            appt['id'] == widget.appointmentData!['id']) {
+                          continue;
+                        }
+
+                        final existingStart = DateTime(
+                          gunTarihi.year,
+                          gunTarihi.month,
+                          gunTarihi.day,
+                          int.parse(appt['baslangic'].split(':')[0]),
+                          int.parse(appt['baslangic'].split(':')[1]),
+                        );
+                        final existingEnd = DateTime(
+                          gunTarihi.year,
+                          gunTarihi.month,
+                          gunTarihi.day,
+                          int.parse(appt['bitis'].split(':')[0]),
+                          int.parse(appt['bitis'].split(':')[1]),
+                        );
+
+                        // Zaman aralıklarının çakışıp çakışmadığını kontrol et
+                        if (newStart.isBefore(existingEnd) &&
+                            existingStart.isBefore(newEnd)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Bu saatler arasında başka bir randevu var.',
+                              ),
+                            ),
+                          );
+                          return; // Çakışma varsa işlemi durdur
+                        }
+                      }
 
                       final appointment = {
                         "isimSoyisim": isimController.text,

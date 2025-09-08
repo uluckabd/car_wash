@@ -70,6 +70,16 @@ class DatabaseService {
     );
   }
 
+  // Yeni eklenen metot: Belirli bir tarihteki randevuları getirir
+  Future<List<Map<String, dynamic>>> getAppointmentsByDate(String date) async {
+    final db = await database;
+    return await db.query(
+      'appointments',
+      where: 'tarih = ?',
+      whereArgs: [date],
+    );
+  }
+
   Future<List<Map<String, dynamic>>> getAppointments() async {
     final db = await database;
     return await db.query('appointments', orderBy: 'tarih ASC');
@@ -81,8 +91,6 @@ class DatabaseService {
   }
 
   // Yardımcı Metotlar
-
-  // Türkçe karakterleri arama için normalleştirme
   String _normalizeForSearch(String text) {
     return text
         .toLowerCase()
@@ -94,13 +102,10 @@ class DatabaseService {
         .replaceAll('ü', 'u');
   }
 
-  // Kaydedilecek veriye normalleştirilmiş arama alanını ekleme
   Map<String, dynamic> _addNormalizedSearchField(
     Map<String, dynamic> appointment,
   ) {
     final normalizedData = <String, dynamic>{...appointment};
-
-    // Aramak istediğin alanları burada birleştir.
     final combinedText = [
       normalizedData['isimSoyisim'],
       normalizedData['arac'],
