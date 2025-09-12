@@ -1,3 +1,4 @@
+import 'package:car_wash/charts_page.dart';
 import 'package:flutter/material.dart';
 import 'AddAppointmentpage.dart';
 import 'ArchiveScreen.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         primaryColor: primaryColor,
         primaryColorLight: secondaryColor,
       ),
-      home: const MyHomePage(title: 'Car_Wash'),
+      home: ChartsPage(),
     );
   }
 }
