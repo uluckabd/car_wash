@@ -70,7 +70,6 @@ class DatabaseService {
     );
   }
 
-  // Yeni eklenen metot: Belirli bir tarihteki randevuları getirir
   Future<List<Map<String, dynamic>>> getAppointmentsByDate(String date) async {
     final db = await database;
     return await db.query(
@@ -88,6 +87,24 @@ class DatabaseService {
   Future<int> deleteAppointment(int id) async {
     final db = await database;
     return await db.delete('appointments', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // **Yeni eklenen metot**
+  Future<List<Map<String, dynamic>>> getAppointmentsByMonthAndDay(
+    int month,
+    int day,
+  ) async {
+    final db = await database;
+
+    // month ve day 2 haneli string hâline getir
+    final monthStr = month.toString().padLeft(2, '0');
+    final dayStr = day.toString().padLeft(2, '0');
+
+    return await db.query(
+      'appointments',
+      where: "strftime('%m', tarih) = ? AND strftime('%d', tarih) = ?",
+      whereArgs: [monthStr, dayStr],
+    );
   }
 
   // Yardımcı Metotlar
