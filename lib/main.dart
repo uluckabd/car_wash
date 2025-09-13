@@ -1,3 +1,4 @@
+import 'package:car_wash/reportchartspage.dart';
 import 'package:flutter/material.dart';
 import 'AddAppointmentpage.dart';
 import 'ArchiveScreen.dart';
@@ -225,14 +226,29 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         actions: selectedIndex == 1
             ? [
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () {
-                    showSearch(
-                      context: context,
-                      delegate: AppointmentSearch(randevular),
-                    );
-                  },
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () {
+                        showSearch(
+                          context: context,
+                          delegate: AppointmentSearch(randevular),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.analytics_outlined),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReportChartsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ]
             : null,
