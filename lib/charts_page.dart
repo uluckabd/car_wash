@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'database_service.dart'; // Senin DatabaseService dosyan
 
+const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
+const Color secondaryColor = Color(0xFF90CAF9);
+
 class ChartsPage extends StatefulWidget {
   final String currentMonth; // <--- Artık parametre var
 
@@ -75,7 +78,25 @@ class _ChartsPageState extends State<ChartsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("${widget.currentMonth} Ayı Grafikleri")),
+      appBar: AppBar(
+        title: Text(
+          "${widget.currentMonth} Ayı Grafikleri",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primaryColor, secondaryColor],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

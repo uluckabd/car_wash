@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'charts_page.dart';
 
+const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
+const Color secondaryColor = Color(0xFF90CAF9);
+
 // Reusable Ay Kartı Widget
 class MonthCard extends StatelessWidget {
   final String monthName;
@@ -48,7 +51,25 @@ class ReportChartsPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Aylık Grafikler")),
+      appBar: AppBar(
+        title: const Text(
+          "Aylık Grafikler",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primaryColor, secondaryColor],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
