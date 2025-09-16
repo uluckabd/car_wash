@@ -37,14 +37,32 @@ class _ChartsPageState extends State<ChartsPage> {
         monthNumber,
         day,
       );
-      int totalIncome = 0;
 
+      int totalIncome = 0;
       for (var appt in appointments) {
         totalIncome += int.tryParse(appt['ucret'] ?? '0') ?? 0;
       }
 
-      tempCarData.add(DailyCarData(day: day, carCount: appointments.length));
-      tempIncomeData.add(DailyCarData(day: day, carCount: totalIncome));
+      // Gün adı hesaplama
+      final now = DateTime.now();
+      final year = now.year;
+      final date = DateTime(year, monthNumber, day);
+      final gunAdi = [
+        'Pazartesi',
+        'Salı',
+        'Çarşamba',
+        'Perşembe',
+        'Cuma',
+        'Cumartesi',
+        'Pazar',
+      ][date.weekday - 1];
+
+      tempCarData.add(
+        DailyCarData(day: day, carCount: appointments.length, dayName: gunAdi),
+      );
+      tempIncomeData.add(
+        DailyCarData(day: day, carCount: totalIncome, dayName: gunAdi),
+      );
     }
 
     setState(() {
@@ -102,7 +120,8 @@ class _ChartsPageState extends State<ChartsPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    "Günlük Araç Sayısı",
+                    textAlign: TextAlign.center,
+                    "Günlük Araç Sayısı grafiği",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(
@@ -116,7 +135,30 @@ class _ChartsPageState extends State<ChartsPage> {
                       primaryYAxis: NumericAxis(
                         title: AxisTitle(text: 'Araç Sayısı'),
                       ),
-                      tooltipBehavior: TooltipBehavior(enable: true),
+                      tooltipBehavior: TooltipBehavior(
+                        enable: true,
+                        builder:
+                            (
+                              dynamic data,
+                              dynamic point,
+                              dynamic series,
+                              int pointIndex,
+                              int seriesIndex,
+                            ) {
+                              final DailyCarData d = data;
+                              return Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${d.day} ${d.dayName}\nAraç Sayısı: ${d.carCount}',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              );
+                            },
+                      ),
                       series: <ColumnSeries<DailyCarData, int>>[
                         ColumnSeries<DailyCarData, int>(
                           dataSource: carData,
@@ -129,7 +171,8 @@ class _ChartsPageState extends State<ChartsPage> {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    "Günlük Gelir",
+                    textAlign: TextAlign.center,
+                    "Günlük Gelir Grafiği",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(
@@ -143,7 +186,30 @@ class _ChartsPageState extends State<ChartsPage> {
                       primaryYAxis: NumericAxis(
                         title: AxisTitle(text: 'Gelir (TL)'),
                       ),
-                      tooltipBehavior: TooltipBehavior(enable: true),
+                      tooltipBehavior: TooltipBehavior(
+                        enable: true,
+                        builder:
+                            (
+                              dynamic data,
+                              dynamic point,
+                              dynamic series,
+                              int pointIndex,
+                              int seriesIndex,
+                            ) {
+                              final DailyCarData d = data;
+                              return Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${d.day} ${d.dayName}\nGelir: ${d.carCount} TL',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              );
+                            },
+                      ),
                       series: <ColumnSeries<DailyCarData, int>>[
                         ColumnSeries<DailyCarData, int>(
                           dataSource: incomeData,
@@ -164,5 +230,10 @@ class _ChartsPageState extends State<ChartsPage> {
 class DailyCarData {
   final int day;
   final int carCount;
-  DailyCarData({required this.day, required this.carCount});
+  final String dayName; // Gün adı eklendi
+  DailyCarData({
+    required this.day,
+    required this.carCount,
+    required this.dayName,
+  });
 }
