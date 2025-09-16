@@ -99,6 +99,49 @@ class DatabaseService {
     );
   }
 
+  // 🔹 Gelire göre sıralama (artan / azalan)
+  Future<List<Map<String, dynamic>>> getAppointmentsSortedByIncome(
+    int month,
+    bool ascending,
+  ) async {
+    final db = await database;
+    final monthStr = month.toString().padLeft(2, '0');
+
+    return await db.query(
+      'appointments',
+      where: "substr(tarih,4,2) = ?",
+      whereArgs: [monthStr],
+      orderBy: "CAST(ucret AS INTEGER) ${ascending ? 'ASC' : 'DESC'}",
+    );
+  }
+
+  // 🔹 Araç sayısına göre sıralama (Dart tarafında yapılacak)
+  Future<List<Map<String, dynamic>>> getAppointmentsGroupedByDay(
+    int month,
+  ) async {
+    final db = await database;
+    final monthStr = month.toString().padLeft(2, '0');
+
+    return await db.query(
+      'appointments',
+      where: "substr(tarih,4,2) = ?",
+      whereArgs: [monthStr],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getMonthlySummary() async {
+    final db = await database;
+    return await db.rawQuery('''
+    SELECT 
+      substr(tarih, 4, 2) as month, 
+      COUNT(arac) as vehicleCount,
+      SUM(CAST(ucret AS INTEGER)) as totalAmount
+    FROM appointments
+    GROUP BY month
+    ORDER BY month ASC
+  ''');
+  }
+
   // Arama ve normalize alanı
   Map<String, dynamic> _addNormalizedSearchField(
     Map<String, dynamic> appointment,

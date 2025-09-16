@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'charts_page.dart';
+import 'database_service.dart';
 
 const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
 const Color secondaryColor = Color(0xFF90CAF9);
@@ -28,28 +29,121 @@ class MonthCard extends StatelessWidget {
   }
 }
 
-class ReportChartsPage extends StatelessWidget {
+class ReportChartsPage extends StatefulWidget {
   const ReportChartsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const months = [
-      "Ocak",
-      "Şubat",
-      "Mart",
-      "Nisan",
-      "Mayıs",
-      "Haziran",
-      "Temmuz",
-      "Ağustos",
-      "Eylül",
-      "Ekim",
-      "Kasım",
-      "Aralık",
-    ];
+  State<ReportChartsPage> createState() => _ReportChartsPageState();
+}
 
+class _ReportChartsPageState extends State<ReportChartsPage> {
+  List<Map<String, dynamic>> monthlyData = [];
+  String selectedSort = "default";
+
+  final monthNames = const {
+    "01": "Ocak",
+    "02": "Şubat",
+    "03": "Mart",
+    "04": "Nisan",
+    "05": "Mayıs",
+    "06": "Haziran",
+    "07": "Temmuz",
+    "08": "Ağustos",
+    "09": "Eylül",
+    "10": "Ekim",
+    "11": "Kasım",
+    "12": "Aralık",
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMonthlyData();
+  }
+
+  Future<void> _loadMonthlyData() async {
+    final db = DatabaseService();
+    final dbData = await db.getMonthlySummary();
+
+    // Başlangıç: 12 ayı default 0 değerlerle doldur
+    final temp = monthNames.entries.map((e) {
+      return {"month": e.key, "totalAmount": 0, "vehicleCount": 0};
+    }).toList();
+
+    // Gelen verilerle güncelle
+    for (var item in dbData) {
+      final index = temp.indexWhere((m) => m["month"] == item["month"]);
+      if (index != -1) {
+        temp[index]["totalAmount"] = item["totalAmount"] ?? 0;
+        temp[index]["vehicleCount"] = item["vehicleCount"] ?? 0;
+      }
+    }
+
+    setState(() {
+      monthlyData = temp;
+    });
+  }
+
+  void _sortData(String sortType) {
+    setState(() {
+      selectedSort = sortType;
+      if (sortType == "amount_desc") {
+        monthlyData.sort(
+          (a, b) => (b['totalAmount'] ?? 0).compareTo(a['totalAmount'] ?? 0),
+        );
+      } else if (sortType == "amount_asc") {
+        monthlyData.sort(
+          (a, b) => (a['totalAmount'] ?? 0).compareTo(b['totalAmount'] ?? 0),
+        );
+      } else if (sortType == "vehicle_desc") {
+        monthlyData.sort(
+          (a, b) => (b['vehicleCount'] ?? 0).compareTo(a['vehicleCount'] ?? 0),
+        );
+      } else if (sortType == "vehicle_asc") {
+        monthlyData.sort(
+          (a, b) => (a['vehicleCount'] ?? 0).compareTo(b['vehicleCount'] ?? 0),
+        );
+      } else {
+        // Varsayılan: Ocak → Aralık
+        monthlyData.sort(
+          (a, b) => int.parse(a['month']).compareTo(int.parse(b['month'])),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.sort),
+            onSelected: _sortData,
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem(
+                value: 'default',
+                child: Text('Varsayılan (Aylara göre)'),
+              ),
+              const PopupMenuItem(
+                value: 'amount_desc',
+                child: Text('Miktara göre en çok'),
+              ),
+              const PopupMenuItem(
+                value: 'amount_asc',
+                child: Text('Miktara göre en az'),
+              ),
+              const PopupMenuItem(
+                value: 'vehicle_desc',
+                child: Text('Araç sayısına göre en çok'),
+              ),
+              const PopupMenuItem(
+                value: 'vehicle_asc',
+                child: Text('Araç sayısına göre en az'),
+              ),
+            ],
+          ),
+        ],
         title: const Text(
           "Aylık Grafikler",
           style: TextStyle(
@@ -71,14 +165,16 @@ class ReportChartsPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
-          children: months.map((month) {
+          children: monthlyData.map((month) {
+            final name = monthNames[month['month']] ?? month['month'];
             return MonthCard(
-              monthName: month,
+              monthName:
+                  "$name (Ücret: ${month['totalAmount'] ?? 0}, Araç: ${month['vehicleCount'] ?? 0})",
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChartsPage(currentMonth: month),
+                    builder: (context) => ChartsPage(currentMonth: name),
                   ),
                 );
               },
