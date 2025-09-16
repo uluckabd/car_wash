@@ -141,6 +141,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return ListTile(
       leading: Icon(
         Icons.access_time,
+        size: 25,
+
         color: doluMu ? Colors.red : Colors.green,
       ),
       title: Text("$start - $end"),
@@ -154,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.orange),
+                  icon: const Icon(Icons.edit, color: Colors.orange, size: 25),
                   onPressed: () async {
                     final updatedAppointment = await Navigator.push(
                       context,
@@ -173,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 25),
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
@@ -366,6 +368,7 @@ class _MyHomePageState extends State<MyHomePage> {
           unselectedItemColor: Colors.white70,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
+
             BottomNavigationBarItem(icon: Icon(Icons.archive), label: 'Arşiv'),
           ],
         ),
