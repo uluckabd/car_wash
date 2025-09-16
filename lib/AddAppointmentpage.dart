@@ -96,7 +96,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         }
 
         return Container(
-          height: 250,
+          height: 275,
           color: Colors.white,
           child: Column(
             children: [
