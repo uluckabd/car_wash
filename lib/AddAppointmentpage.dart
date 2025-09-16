@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:car_wash/database_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   final Map<String, dynamic>? appointmentData;
@@ -76,21 +78,48 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final pickedDate = await showDatePicker(
+    DateTime? pickedDate = await showCupertinoModalPopup<DateTime>(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2023),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: ThemeData.light().copyWith(
-          colorScheme: const ColorScheme.light(
-            primary: Color(0xFFFF0101),
-            onPrimary: Colors.white,
-            onSurface: Colors.black,
+      builder: (_) {
+        DateTime tempPickedDate = DateTime.now();
+        // dateController'da bir tarih varsa onu başlangıç tarihi olarak kullan
+        if (dateController.text.isNotEmpty) {
+          final parts = dateController.text.split('/');
+          if (parts.length == 3) {
+            final day = int.tryParse(parts[0]);
+            final month = int.tryParse(parts[1]);
+            final year = int.tryParse(parts[2]);
+            if (day != null && month != null && year != null) {
+              tempPickedDate = DateTime(year, month, day);
+            }
+          }
+        }
+
+        return Container(
+          height: 250,
+          color: Colors.white,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 200,
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: tempPickedDate,
+                  minimumDate: DateTime(2023),
+                  maximumDate: DateTime(2030),
+                  onDateTimeChanged: (DateTime newDate) {
+                    tempPickedDate = newDate;
+                  },
+                ),
+              ),
+              CupertinoButton(
+                child: const Text('Tamam'),
+                onPressed: () => Navigator.of(context).pop(tempPickedDate),
+              ),
+            ],
           ),
-        ),
-        child: child!,
-      ),
+        );
+      },
     );
 
     if (pickedDate != null) {

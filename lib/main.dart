@@ -1,5 +1,6 @@
 import 'package:car_wash/reportchartspage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'AddAppointmentpage.dart';
 import 'ArchiveScreen.dart';
 import 'database_service.dart';
@@ -28,6 +29,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('tr', 'TR'), // Türkçe
+        // Diğer diller de eklenebilir
+      ],
       title: 'Car_Wash',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
