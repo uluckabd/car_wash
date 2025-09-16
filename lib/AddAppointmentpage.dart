@@ -166,218 +166,232 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             gradient: LinearGradient(
               colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
               begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              end: Alignment.topRight,
             ),
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            buildTextField(label: 'İsim Soyisim', controller: isimController),
-            buildTextField(
-              label: 'Telefon',
-              keyboardType: TextInputType.phone,
-              controller: telefonController,
-            ),
-            buildTextField(label: 'Araç Bilgisi', controller: aracController),
-            buildTextField(
-              label: 'Tarih',
-              controller: dateController,
-              readOnly: true,
-              onTap: () => _selectDate(context),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Başlangıç Saati',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    value: _startTime,
-                    items: _timeSlots
-                        .map(
-                          (time) =>
-                              DropdownMenuItem(value: time, child: Text(time)),
-                        )
-                        .toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        _startTime = val;
-                        if (_endTime != null &&
-                            _endTime!.compareTo(_startTime!) < 0) {
-                          _endTime = null;
-                        }
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Bitiş Saati',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    value: _endTime,
-                    items: filteredEndTimes
-                        .map(
-                          (time) =>
-                              DropdownMenuItem(value: time, child: Text(time)),
-                        )
-                        .toList(),
-                    onChanged: (val) => setState(() => _endTime = val),
-                  ),
-                ),
-              ],
-            ),
-            buildTextField(
-              label: 'Ücret',
-              keyboardType: TextInputType.number,
-              controller: ucretController,
-            ),
-            buildTextField(
-              label: 'Not',
-              maxLines: 3,
-              controller: notController,
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF90CAF9),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Vazgeç',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_startTime == null || _endTime == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Lütfen başlangıç ve bitiş saatini seçin',
-                          ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
+            begin: Alignment.topLeft,
+            end: Alignment.topRight,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              buildTextField(label: 'İsim Soyisim', controller: isimController),
+              buildTextField(
+                label: 'Telefon',
+                keyboardType: TextInputType.phone,
+                controller: telefonController,
+              ),
+              buildTextField(label: 'Araç Bilgisi', controller: aracController),
+              buildTextField(
+                label: 'Tarih',
+                controller: dateController,
+                readOnly: true,
+                onTap: () => _selectDate(context),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Başlangıç Saati',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                      return;
-                    }
-
-                    final tarihParts = dateController.text.split('/');
-                    final gunTarihi = DateTime(
-                      int.parse(tarihParts[2]),
-                      int.parse(tarihParts[1]),
-                      int.parse(tarihParts[0]),
-                    );
-                    final gunAdi = gunler[gunTarihi.weekday - 1];
-
-                    final newStart = DateTime(
-                      gunTarihi.year,
-                      gunTarihi.month,
-                      gunTarihi.day,
-                      int.parse(_startTime!.split(':')[0]),
-                      int.parse(_startTime!.split(':')[1]),
-                    );
-
-                    final newEnd = DateTime(
-                      gunTarihi.year,
-                      gunTarihi.month,
-                      gunTarihi.day,
-                      int.parse(_endTime!.split(':')[0]),
-                      int.parse(_endTime!.split(':')[1]),
-                    );
-
-                    final existingAppointments = await DatabaseService()
-                        .getAppointmentsByDate(dateController.text);
-
-                    for (var appt in existingAppointments) {
-                      if (widget.appointmentData != null &&
-                          appt['id'] == widget.appointmentData!['id'])
-                        continue;
-
-                      final existingStart = DateTime(
-                        gunTarihi.year,
-                        gunTarihi.month,
-                        gunTarihi.day,
-                        int.parse(appt['baslangic'].split(':')[0]),
-                        int.parse(appt['baslangic'].split(':')[1]),
-                      );
-                      final existingEnd = DateTime(
-                        gunTarihi.year,
-                        gunTarihi.month,
-                        gunTarihi.day,
-                        int.parse(appt['bitis'].split(':')[0]),
-                        int.parse(appt['bitis'].split(':')[1]),
-                      );
-
-                      if (newStart.isBefore(existingEnd) &&
-                          existingStart.isBefore(newEnd)) {
+                      ),
+                      value: _startTime,
+                      items: _timeSlots
+                          .map(
+                            (time) => DropdownMenuItem(
+                              value: time,
+                              child: Text(time),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _startTime = val;
+                          if (_endTime != null &&
+                              _endTime!.compareTo(_startTime!) < 0) {
+                            _endTime = null;
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Bitiş Saati',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      value: _endTime,
+                      items: filteredEndTimes
+                          .map(
+                            (time) => DropdownMenuItem(
+                              value: time,
+                              child: Text(time),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) => setState(() => _endTime = val),
+                    ),
+                  ),
+                ],
+              ),
+              buildTextField(
+                label: 'Ücret',
+                keyboardType: TextInputType.number,
+                controller: ucretController,
+              ),
+              buildTextField(
+                label: 'Not',
+                maxLines: 3,
+                controller: notController,
+              ),
+              const SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF90CAF9),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Vazgeç',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_startTime == null || _endTime == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Bu saatler arasında başka bir randevu var.',
+                              'Lütfen başlangıç ve bitiş saatini seçin',
                             ),
                           ),
                         );
                         return;
                       }
-                    }
 
-                    // Kaydedilecek randevu
-                    final appointment = {
-                      "isimSoyisim": isimController.text,
-                      "telefon": telefonController.text,
-                      "arac": aracController.text,
-                      "tarih": dateController.text, // DD/MM/YYYY formatında
-                      "baslangic": _startTime,
-                      "bitis": _endTime,
-                      "ucret": ucretController.text,
-                      "aciklama": notController.text,
-                      "gun": gunAdi,
-                    };
+                      final tarihParts = dateController.text.split('/');
+                      final gunTarihi = DateTime(
+                        int.parse(tarihParts[2]),
+                        int.parse(tarihParts[1]),
+                        int.parse(tarihParts[0]),
+                      );
+                      final gunAdi = gunler[gunTarihi.weekday - 1];
 
-                    Navigator.pop(context, appointment);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF0101),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 14,
+                      final newStart = DateTime(
+                        gunTarihi.year,
+                        gunTarihi.month,
+                        gunTarihi.day,
+                        int.parse(_startTime!.split(':')[0]),
+                        int.parse(_startTime!.split(':')[1]),
+                      );
+
+                      final newEnd = DateTime(
+                        gunTarihi.year,
+                        gunTarihi.month,
+                        gunTarihi.day,
+                        int.parse(_endTime!.split(':')[0]),
+                        int.parse(_endTime!.split(':')[1]),
+                      );
+
+                      final existingAppointments = await DatabaseService()
+                          .getAppointmentsByDate(dateController.text);
+
+                      for (var appt in existingAppointments) {
+                        if (widget.appointmentData != null &&
+                            appt['id'] == widget.appointmentData!['id'])
+                          continue;
+
+                        final existingStart = DateTime(
+                          gunTarihi.year,
+                          gunTarihi.month,
+                          gunTarihi.day,
+                          int.parse(appt['baslangic'].split(':')[0]),
+                          int.parse(appt['baslangic'].split(':')[1]),
+                        );
+                        final existingEnd = DateTime(
+                          gunTarihi.year,
+                          gunTarihi.month,
+                          gunTarihi.day,
+                          int.parse(appt['bitis'].split(':')[0]),
+                          int.parse(appt['bitis'].split(':')[1]),
+                        );
+
+                        if (newStart.isBefore(existingEnd) &&
+                            existingStart.isBefore(newEnd)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Bu saatler arasında başka bir randevu var.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+                      }
+
+                      // Kaydedilecek randevu
+                      final appointment = {
+                        "isimSoyisim": isimController.text,
+                        "telefon": telefonController.text,
+                        "arac": aracController.text,
+                        "tarih": dateController.text, // DD/MM/YYYY formatında
+                        "baslangic": _startTime,
+                        "bitis": _endTime,
+                        "ucret": ucretController.text,
+                        "aciklama": notController.text,
+                        "gun": gunAdi,
+                      };
+
+                      Navigator.pop(context, appointment);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF0101),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    child: const Text(
+                      'Kaydet',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
-                  child: const Text(
-                    'Kaydet',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

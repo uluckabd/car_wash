@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'database_service.dart';
 
+const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
+const Color secondaryColor = Color(0xFF90CAF9);
+
 class ArchiveScreen extends StatelessWidget {
   final List<Map<String, dynamic>> randevular;
 
@@ -67,47 +70,63 @@ class ArchiveScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ayGruplari = groupByMonth();
 
-    return ListView(
-      children: List.generate(12, (index) {
-        final monthNumber = index + 1;
-        final monthName = getMonthName(monthNumber);
-        final ayRandevulari = ayGruplari[monthNumber] ?? [];
-        final toplamUcret = calculateMonthTotal(ayRandevulari);
-
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-          child: ExpansionTile(
-            title: Text(
-              '$monthName (${ayRandevulari.length} randevu - Toplam: ${toplamUcret.toStringAsFixed(2)}₺)',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            children: ayRandevulari.isEmpty
-                ? [const ListTile(title: Text('Bu ayda randevu yok'))]
-                : groupByDay(ayRandevulari).entries
-                      .map(
-                        (gunEntry) => ExpansionTile(
-                          title: Text(
-                            '${gunEntry.key} (${gunEntry.value.length} randevu)',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          children: gunEntry.value.map((r) {
-                            return ListTile(
-                              leading: const Icon(Icons.access_time),
-                              title: Text('${r['baslangic']} - ${r['bitis']}'),
-                              subtitle: Text(
-                                '${r['isimSoyisim']} - ${r['telefon']} - ${r['arac']}',
-                              ),
-                              trailing: r['ucret'] != null
-                                  ? Text('${r['ucret']}₺')
-                                  : null,
-                            );
-                          }).toList(),
-                        ),
-                      )
-                      .toList(),
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [primaryColor, secondaryColor],
+            begin: Alignment.topLeft,
+            end: Alignment.topRight,
           ),
-        );
-      }),
+        ),
+        child: ListView(
+          children: List.generate(12, (index) {
+            final monthNumber = index + 1;
+            final monthName = getMonthName(monthNumber);
+            final ayRandevulari = ayGruplari[monthNumber] ?? [];
+            final toplamUcret = calculateMonthTotal(ayRandevulari);
+
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              child: ExpansionTile(
+                title: Text(
+                  '$monthName (${ayRandevulari.length} randevu - Toplam: ${toplamUcret.toStringAsFixed(2)}₺)',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                children: ayRandevulari.isEmpty
+                    ? [const ListTile(title: Text('Bu ayda randevu yok'))]
+                    : groupByDay(ayRandevulari).entries
+                          .map(
+                            (gunEntry) => ExpansionTile(
+                              title: Text(
+                                '${gunEntry.key} (${gunEntry.value.length} randevu)',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              children: gunEntry.value.map((r) {
+                                return ListTile(
+                                  leading: const Icon(Icons.access_time),
+                                  title: Text(
+                                    '${r['baslangic']} - ${r['bitis']}',
+                                  ),
+                                  subtitle: Text(
+                                    '${r['isimSoyisim']} - ${r['telefon']} - ${r['arac']}',
+                                  ),
+                                  trailing: r['ucret'] != null
+                                      ? Text('${r['ucret']}₺')
+                                      : null,
+                                );
+                              }).toList(),
+                            ),
+                          )
+                          .toList(),
+              ),
+            );
+          }),
+        ),
+      ),
     );
   }
 }

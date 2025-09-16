@@ -118,7 +118,8 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
       appBar: AppBar(
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.sort),
+            icon: const Icon(Icons.sort, color: Colors.white, size: 30),
+
             onSelected: _sortData,
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
               const PopupMenuItem(
@@ -162,24 +163,33 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: monthlyData.map((month) {
-            final name = monthNames[month['month']] ?? month['month'];
-            return MonthCard(
-              monthName:
-                  "$name (Ücret: ${month['totalAmount'] ?? 0}, Araç: ${month['vehicleCount'] ?? 0})",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChartsPage(currentMonth: name),
-                  ),
-                );
-              },
-            );
-          }).toList(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [primaryColor, secondaryColor],
+            begin: Alignment.topLeft,
+            end: Alignment.topRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: monthlyData.map((month) {
+              final name = monthNames[month['month']] ?? month['month'];
+              return MonthCard(
+                monthName:
+                    "$name (Ücret: ${month['totalAmount'] ?? 0}, Araç: ${month['vehicleCount'] ?? 0})",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChartsPage(currentMonth: name),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
