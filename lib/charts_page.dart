@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'database_service.dart'; // Senin DatabaseService dosyan
+import 'database_service.dart';
 
 const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
 const Color secondaryColor = Color(0xFF90CAF9);
 
 class ChartsPage extends StatefulWidget {
-  final String currentMonth; // <--- Artık parametre var
+  final String currentMonth;
 
-  const ChartsPage({
-    super.key,
-    required this.currentMonth,
-  }); // <--- required parametre
+  const ChartsPage({super.key, required this.currentMonth});
 
   @override
   State<ChartsPage> createState() => _ChartsPageState();
@@ -81,7 +78,7 @@ class _ChartsPageState extends State<ChartsPage> {
       appBar: AppBar(
         title: Text(
           "${widget.currentMonth} Ayı Grafikleri",
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 25,

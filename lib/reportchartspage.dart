@@ -4,7 +4,6 @@ import 'charts_page.dart';
 const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
 const Color secondaryColor = Color(0xFF90CAF9);
 
-// Reusable Ay Kartı Widget
 class MonthCard extends StatelessWidget {
   final String monthName;
   final VoidCallback onTap;
@@ -29,7 +28,6 @@ class MonthCard extends StatelessWidget {
   }
 }
 
-// Report Charts Page
 class ReportChartsPage extends StatelessWidget {
   const ReportChartsPage({super.key});
 
@@ -72,24 +70,20 @@ class ReportChartsPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: months
-                .map(
-                  (month) => MonthCard(
-                    monthName: month,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChartsPage(currentMonth: month),
-                        ),
-                      );
-                    },
+        child: ListView(
+          children: months.map((month) {
+            return MonthCard(
+              monthName: month,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChartsPage(currentMonth: month),
                   ),
-                )
-                .toList(),
-          ),
+                );
+              },
+            );
+          }).toList(),
         ),
       ),
     );

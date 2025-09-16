@@ -16,8 +16,8 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase() async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final path = join(documentsDirectory.path, 'appointments.db');
+    final dir = await getApplicationDocumentsDirectory();
+    final path = join(dir.path, 'appointments.db');
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
@@ -39,37 +39,41 @@ class DatabaseService {
     ''');
   }
 
+  // Randevu ekleme
   Future<int> addAppointment(Map<String, dynamic> appointment) async {
     final db = await database;
-    final normalizedAppointment = _addNormalizedSearchField(appointment);
-    return await db.insert('appointments', normalizedAppointment);
+    final normalized = _addNormalizedSearchField(appointment);
+    return await db.insert('appointments', normalized);
   }
 
+  // Randevu güncelleme
   Future<int> updateAppointment(
     int id,
     Map<String, dynamic> appointment,
   ) async {
     final db = await database;
-    final normalizedAppointment = _addNormalizedSearchField(appointment);
+    final normalized = _addNormalizedSearchField(appointment);
     return await db.update(
       'appointments',
-      normalizedAppointment,
+      normalized,
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  Future<List<Map<String, dynamic>>> searchAppointments(String query) async {
+  // Randevu silme
+  Future<int> deleteAppointment(int id) async {
     final db = await database;
-    final normalizedQuery = _normalizeForSearch(query);
-
-    return await db.query(
-      'appointments',
-      where: 'normalizedSearch LIKE ?',
-      whereArgs: ['%$normalizedQuery%'],
-    );
+    return await db.delete('appointments', where: 'id = ?', whereArgs: [id]);
   }
 
+  // Tüm randevuları çekme
+  Future<List<Map<String, dynamic>>> getAppointments() async {
+    final db = await database;
+    return await db.query('appointments', orderBy: 'tarih ASC');
+  }
+
+  // Belirli tarih için randevuları çekme
   Future<List<Map<String, dynamic>>> getAppointmentsByDate(String date) async {
     final db = await database;
     return await db.query(
@@ -79,58 +83,34 @@ class DatabaseService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getAppointments() async {
-    final db = await database;
-    return await db.query('appointments', orderBy: 'tarih ASC');
-  }
-
-  Future<int> deleteAppointment(int id) async {
-    final db = await database;
-    return await db.delete('appointments', where: 'id = ?', whereArgs: [id]);
-  }
-
-  // **Yeni eklenen metot**
+  // Belirli ay ve gün için randevuları çekme (DD/MM/YYYY formatına göre)
   Future<List<Map<String, dynamic>>> getAppointmentsByMonthAndDay(
     int month,
     int day,
   ) async {
     final db = await database;
-
-    // month ve day 2 haneli string hâline getir
     final monthStr = month.toString().padLeft(2, '0');
     final dayStr = day.toString().padLeft(2, '0');
 
     return await db.query(
       'appointments',
-      where: "strftime('%m', tarih) = ? AND strftime('%d', tarih) = ?",
+      where: "substr(tarih,4,2) = ? AND substr(tarih,1,2) = ?",
       whereArgs: [monthStr, dayStr],
     );
   }
 
-  // Yardımcı Metotlar
-  String _normalizeForSearch(String text) {
-    return text
-        .toLowerCase()
-        .replaceAll('ç', 'c')
-        .replaceAll('ğ', 'g')
-        .replaceAll('ı', 'i')
-        .replaceAll('ö', 'o')
-        .replaceAll('ş', 's')
-        .replaceAll('ü', 'u');
-  }
-
+  // Arama ve normalize alanı
   Map<String, dynamic> _addNormalizedSearchField(
     Map<String, dynamic> appointment,
   ) {
-    final normalizedData = <String, dynamic>{...appointment};
+    final normalized = <String, dynamic>{...appointment};
     final combinedText = [
-      normalizedData['isimSoyisim'],
-      normalizedData['arac'],
-      normalizedData['aciklama'],
-      normalizedData['gun'],
+      normalized['isimSoyisim'],
+      normalized['arac'],
+      normalized['aciklama'],
+      normalized['gun'],
     ].where((e) => e != null).join(' ');
-
-    normalizedData['normalizedSearch'] = _normalizeForSearch(combinedText);
-    return normalizedData;
+    normalized['normalizedSearch'] = combinedText.toLowerCase();
+    return normalized;
   }
 }
