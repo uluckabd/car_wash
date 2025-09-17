@@ -5,6 +5,7 @@ import 'AddAppointmentpage.dart';
 import 'ArchiveScreen.dart';
 import 'database_service.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/cupertino.dart';
 
 // Uygulama genelinde kullanılacak renkleri ve metinleri sabitler olarak tanımlıyoruz.
 const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
@@ -95,12 +96,43 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
+    DateTime? pickedDate;
+
+    // showCupertinoModalPopup kullanarak alttan açılan bir menü oluşturuyoruz
+    await showCupertinoModalPopup(
       context: context,
-      initialDate: baseDate,
-      firstDate: DateTime(2023),
-      lastDate: DateTime(2030),
+      builder: (BuildContext builder) {
+        return Container(
+          height:
+              MediaQuery.of(context).size.height /
+              3, // Ekranın 1/3'ünü kaplasın
+          color: Colors.white, // Arka plan rengini belirle
+          child: Column(
+            children: [
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date, // Sadece tarih seçimi
+                  initialDateTime: baseDate,
+                  minimumDate: DateTime(2023),
+                  maximumDate: DateTime(2030),
+                  onDateTimeChanged: (DateTime newDate) {
+                    // Tarih değiştikçe pickedDate'i güncelle
+                    pickedDate = newDate;
+                  },
+                ),
+              ),
+              // Tamam butonu
+              CupertinoButton(
+                onPressed: () => Navigator.pop(context), // Menüyü kapat
+                child: const Text('Tamam'),
+              ),
+            ],
+          ),
+        );
+      },
     );
+
+    // Eğer bir tarih seçildiyse ve önceki tarihten farklıysa işlemleri yap
     if (pickedDate != null && pickedDate != baseDate) {
       final today = DateTime(
         DateTime.now().year,
@@ -108,9 +140,9 @@ class _MyHomePageState extends State<MyHomePage> {
         DateTime.now().day,
       );
       final pickedDay = DateTime(
-        pickedDate.year,
-        pickedDate.month,
-        pickedDate.day,
+        pickedDate!.year,
+        pickedDate!.month,
+        pickedDate!.day,
       );
       final int newPageIndex = pickedDay.difference(today).inDays;
 
@@ -121,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       setState(() {
-        baseDate = pickedDate;
+        baseDate = pickedDate!;
       });
     }
   }
@@ -142,7 +174,6 @@ class _MyHomePageState extends State<MyHomePage> {
       leading: Icon(
         Icons.access_time,
         size: 25,
-
         color: doluMu ? Colors.red : Colors.green,
       ),
       title: Text("$start - $end"),
