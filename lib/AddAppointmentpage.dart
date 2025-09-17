@@ -190,24 +190,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             color: Colors.white,
           ),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-            ),
-          ),
-        ),
+        flexibleSpace: Appcolor(),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
-            begin: Alignment.topLeft,
-            end: Alignment.topRight,
-          ),
-        ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -421,6 +406,23 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               SizedBox(height: 40),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class Appcolor extends StatelessWidget {
+  const Appcolor({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
+          begin: Alignment.topLeft,
+          end: Alignment.topRight,
         ),
       ),
     );
