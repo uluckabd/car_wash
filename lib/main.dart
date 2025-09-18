@@ -1,3 +1,4 @@
+import 'package:car_wash/app_ready_package.dart';
 import 'package:car_wash/reportchartspage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -98,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate;
 
-    // showCupertinoModalPopup kullanarak alttan açılan bir menü oluşturuyoruz
+    // showCupertinoModalPopup kullanarak alttan açılan bir menü oluşturma
     await showCupertinoModalPopup(
       context: context,
       builder: (BuildContext builder) {
@@ -251,12 +252,8 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text(
-          selectedIndex == 0 ? "Car_Wash" : "Arşiv",
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-          ),
+          selectedIndex == 0 ? "Ana Sayfa" : "Arşiv",
+          style: AppTextStyles.title,
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(

@@ -1,3 +1,6 @@
+import 'package:car_wash/AddAppointmentpage.dart';
+import 'package:car_wash/app_ready_package.dart';
+
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'database_service.dart';
@@ -96,32 +99,13 @@ class _ChartsPageState extends State<ChartsPage> {
       appBar: AppBar(
         title: Text(
           "${widget.currentMonth} Ayı Grafikleri",
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-          ),
+          style: AppTextStyles.title,
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primaryColor, secondaryColor],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        flexibleSpace: Appcolor(),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [primaryColor, secondaryColor],
-                  begin: Alignment.topLeft,
-                  end: Alignment.topRight,
-                ),
-              ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(

@@ -1,3 +1,4 @@
+import 'package:car_wash/app_ready_package.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -184,11 +185,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       appBar: AppBar(
         title: Text(
           widget.appointmentData == null ? 'Yeni Randevu' : 'Randevu Güncelle',
-          style: const TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: AppTextStyles.title,
         ),
         flexibleSpace: Appcolor(),
       ),

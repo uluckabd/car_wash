@@ -1,3 +1,4 @@
+import 'package:car_wash/app_ready_package.dart';
 import 'package:flutter/material.dart';
 import 'charts_page.dart';
 import 'database_service.dart';
@@ -145,14 +146,7 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
             ],
           ),
         ],
-        title: const Text(
-          "Aylık Grafikler",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-          ),
-        ),
+        title: Text("Aylık Grafikler", style: AppTextStyles.title),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
