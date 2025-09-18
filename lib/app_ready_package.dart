@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// app bar başlıkları için kullandığımız paket
+
 class AppTextStyles {
   static TextStyle title = GoogleFonts.lato(
     fontSize: 25,
@@ -14,6 +16,7 @@ class AppTextStyles {
   );
 }
 
+// uygulama arka planı için kullandığımız paket
 class Appcolor extends StatelessWidget {
   const Appcolor({super.key});
 

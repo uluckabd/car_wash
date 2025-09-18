@@ -1,6 +1,4 @@
-import 'package:car_wash/AddAppointmentpage.dart';
 import 'package:car_wash/app_ready_package.dart';
-
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'database_service.dart';
@@ -124,7 +122,7 @@ class _ChartsPageState extends State<ChartsPage> {
                       child: SfCartesianChart(
                         primaryXAxis: NumericAxis(
                           title: AxisTitle(text: 'Gün'),
-                          interval: 5,
+                          interval: 4,
                           minimum: 0,
                         ),
                         primaryYAxis: NumericAxis(
@@ -178,7 +176,7 @@ class _ChartsPageState extends State<ChartsPage> {
                       child: SfCartesianChart(
                         primaryXAxis: NumericAxis(
                           title: AxisTitle(text: 'Gün'),
-                          interval: 5,
+                          interval: 4,
                           minimum: 0,
                         ),
                         primaryYAxis: NumericAxis(

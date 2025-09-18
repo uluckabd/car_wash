@@ -1,5 +1,6 @@
 import 'package:car_wash/app_ready_package.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'charts_page.dart';
 import 'database_service.dart';
 
@@ -117,45 +118,9 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.sort, color: Colors.white, size: 30),
-
-            onSelected: _sortData,
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem(
-                value: 'default',
-                child: Text('Varsayılan (Aylara göre)'),
-              ),
-              const PopupMenuItem(
-                value: 'amount_desc',
-                child: Text('Miktara göre en çok'),
-              ),
-              const PopupMenuItem(
-                value: 'amount_asc',
-                child: Text('Miktara göre en az'),
-              ),
-              const PopupMenuItem(
-                value: 'vehicle_desc',
-                child: Text('Araç sayısına göre en çok'),
-              ),
-              const PopupMenuItem(
-                value: 'vehicle_asc',
-                child: Text('Araç sayısına göre en az'),
-              ),
-            ],
-          ),
-        ],
+        actions: [SortMenu(onSelected: _sortData)],
         title: Text("Aylık Grafikler", style: AppTextStyles.title),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primaryColor, secondaryColor],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        flexibleSpace: Appcolor(),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -186,6 +151,42 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class SortMenu extends StatelessWidget {
+  final Function(String) onSelected;
+
+  const SortMenu({super.key, required this.onSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.sort, color: Colors.white, size: 30),
+      onSelected: onSelected,
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        const PopupMenuItem(
+          value: 'default',
+          child: Text('Varsayılan (Aylara göre)'),
+        ),
+        const PopupMenuItem(
+          value: 'amount_desc',
+          child: Text('Miktara göre en çok'),
+        ),
+        const PopupMenuItem(
+          value: 'amount_asc',
+          child: Text('Miktara göre en az'),
+        ),
+        const PopupMenuItem(
+          value: 'vehicle_desc',
+          child: Text('Araç sayısına göre en çok'),
+        ),
+        const PopupMenuItem(
+          value: 'vehicle_asc',
+          child: Text('Araç sayısına göre en az'),
+        ),
+      ],
     );
   }
 }
