@@ -408,20 +408,3 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 }
-
-class Appcolor extends StatelessWidget {
-  const Appcolor({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
-          begin: Alignment.topLeft,
-          end: Alignment.topRight,
-        ),
-      ),
-    );
-  }
-}

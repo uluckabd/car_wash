@@ -9,5 +9,24 @@ class AppTextStyles {
     fontSize: 25,
     fontWeight: FontWeight.bold,
     color: Colors.white,
+    wordSpacing: 2,
+    letterSpacing: 1,
   );
+}
+
+class Appcolor extends StatelessWidget {
+  const Appcolor({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
+          begin: Alignment.topLeft,
+          end: Alignment.topRight,
+        ),
+      ),
+    );
+  }
 }
