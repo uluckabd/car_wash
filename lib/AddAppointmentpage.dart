@@ -328,7 +328,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   final phoneMask = MaskTextInputFormatter(
     // 0'dan sonra 3 hane (alan kodu), sonra 3, sonra 2, sonra 2 hane: 0(5XX) XXX XX XX
-    mask: '0 ### ### ## ##',
+    mask: '0 (###) ### ## ##',
     filter: {"#": RegExp(r'[0-9]')}, // # yerine sadece rakam girilebilir
   );
 

@@ -2,6 +2,7 @@ import 'package:car_wash/app_ready_package.dart';
 import 'package:car_wash/reportchartspage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'AddAppointmentpage.dart';
 import 'ArchiveScreen.dart';
 import 'database_service.dart';
@@ -22,6 +23,9 @@ const List<String> weekdays = [
 ];
 
 void main() {
+  // 'AppointmentSearch' tanımlı değilse, bu kısım hata verebilir.
+  // O sınıfın tanımlı olduğu dosyayı (büyük ihtimalle ArchiveScreen.dart veya ayrı bir dosya) kontrol edin.
+  // Bu güncelleme sadece 'MyHomePage' sınıfı içindir.
   runApp(const MyApp());
 }
 
@@ -159,6 +163,59 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<void> _makePhoneCall(String? telefonNumarasi) async {
+    // 1. Gelen numara null veya boş mu?
+    if (telefonNumarasi == null || telefonNumarasi.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Arama için telefon numarası boş.')),
+        );
+      }
+      return; // İşlemi sonlandır
+    }
+
+    // 2. Maskeleri temizle (Sadece rakamları al)
+    final rawPhoneNumber = telefonNumarasi.replaceAll(RegExp(r'[^\d]'), '');
+
+    // 3. Temizlenmiş numara da boş kaldıysa?
+    if (rawPhoneNumber.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Arama için geçerli telefon numarası bulunamadı.'),
+          ),
+        );
+      }
+      return; // İşlemi sonlandır
+    }
+
+    // 4. URI'yi oluştur (Numaranın başına 'tel:' şemasını ekliyoruz)
+    final Uri launchUri = Uri(scheme: 'tel', path: rawPhoneNumber);
+
+    // 5. URL'yi başlatmayı dene
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        if (context.mounted) {
+          // canLaunchUrl false döndürürse bu hata mesajını ver
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Arama başlatılamadı: Cihaz desteklemiyor.'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Fırlatılan herhangi bir hatayı yakala
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Arama sırasında hata oluştu: $e')),
+        );
+      }
+    }
+  }
+
   String getFormattedDate(DateTime date) {
     return "${weekdays[date.weekday - 1]} - ${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
@@ -172,6 +229,21 @@ class _MyHomePageState extends State<MyHomePage> {
     final bool doluMu = randevuBilgi.isNotEmpty;
 
     return ListTile(
+      // ✅ BURASI GÜNCELLENDİ: ListTile'a tıklandığında arama yapacak.
+      onTap: () {
+        if (doluMu) {
+          final String telefon = randevuBilgi['telefon'] ?? '';
+
+          // Telefon numarasındaki tüm maskeleri (boşluk, parantez, tire vb.) temizle
+          final rawPhoneNumber = telefon.replaceAll(RegExp(r'[^\d]'), '');
+
+          _makePhoneCall(rawPhoneNumber);
+        } else {
+          // Randevu boşsa, yeni randevu ekleme ekranına yönlendirebilirsin.
+          // Şimdilik boş bırakıyorum.
+        }
+      },
+      // inputFormatters: [phoneMask], // Gerekirse maskeyi burada tutmaya devam et
       leading: Icon(
         Icons.access_time,
         size: 25,
@@ -187,6 +259,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Düzenleme butonu (Arama butonu yerine kullanabilirsin, ama onTap'a ekledik.)
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.orange, size: 25),
                   onPressed: () async {
@@ -198,6 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     );
                     if (updatedAppointment != null) {
+                      // Randevu güncelleme mantığı
                       await dbService.updateAppointment(
                         randevuBilgi['id'],
                         updatedAppointment,
@@ -206,6 +280,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                   },
                 ),
+                // Silme butonu
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red, size: 25),
                   onPressed: () async {
@@ -271,6 +346,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     IconButton(
                       icon: const Icon(Icons.search),
                       onPressed: () {
+                        // 'AppointmentSearch' sınıfının tanımlı olduğundan emin olun.
                         showSearch(
                           context: context,
                           delegate: AppointmentSearch(randevular),
