@@ -26,17 +26,20 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   final notController = TextEditingController();
   final dateController = TextEditingController();
 
+  //Belirli bir zaman aralığı içinde, yarım saatlik dilimler halinde sıralı saat listesi oluşturmaya yarar.
   final List<String> _timeSlots = List.generate(21, (index) {
-    final hour = 8 + (index ~/ 2);
-    final minute = (index % 2) * 30;
+    final hour = 8 + (index ~/ 2); // saat
+    final minute = (index % 2) * 30; // dakika
     return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   });
 
+  //kullanıcıdan girdi alırken tarih formatını zorunlu tutan bir yapı
   final dateMask = MaskTextInputFormatter(
     mask: '##/##/####',
     filter: {"#": RegExp(r'[0-9]')},
   );
 
+  //Günler
   final List<String> gunler = [
     "Pazartesi",
     "Salı",
@@ -323,6 +326,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
+  final phoneMask = MaskTextInputFormatter(
+    // 0'dan sonra 3 hane (alan kodu), sonra 3, sonra 2, sonra 2 hane: 0(5XX) XXX XX XX
+    mask: '0 ### ### ## ##',
+    filter: {"#": RegExp(r'[0-9]')}, // # yerine sadece rakam girilebilir
+  );
+
   @override
   Widget build(BuildContext context) {
     final filteredEndTimes = _startTime == null
@@ -348,6 +357,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 label: 'Telefon',
                 keyboardType: TextInputType.phone,
                 controller: telefonController,
+                inputFormatters: [phoneMask],
               ),
               buildTextField(label: 'Araç Bilgisi', controller: aracController),
               buildTextField(

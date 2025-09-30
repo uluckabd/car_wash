@@ -176,6 +176,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.1.1"
+  mask_input_formatter:
+    dependency: "direct main"
+    description:
+      name: mask_input_formatter
+      sha256: c3543db896e8e24e15c49733650301e495fef4f82853bcb387b29ac1d4ae07ae
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   mask_text_input_formatter:
     dependency: "direct main"
     description:
