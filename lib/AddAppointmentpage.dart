@@ -174,6 +174,155 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
+  Future<String?> _showTimePicker(
+    BuildContext context, {
+    String? initial,
+    String? minTime,
+  }) async {
+    final List<int> allHours = List.generate(11, (i) => 8 + i); // 08 - 18
+    final List<int> minutes = [0, 30]; // 00, 30
+
+    // State'i yerel olarak yönetmek için final yerine geçici değişken
+    int tempSelectedHour = 8;
+    int tempSelectedMinute = 0;
+
+    // ... (Initial value set ve MinTime kontrol kısmı aynı kalabilir) ...
+
+    int minHour = 8;
+    int minMinute = 0;
+    if (minTime != null) {
+      final parts = minTime.split(':');
+      if (parts.length == 2) {
+        minHour = int.tryParse(parts[0]) ?? 8;
+        minMinute = int.tryParse(parts[1]) ?? 0;
+      }
+    }
+
+    // Initial value set (selectedHour ve selectedMinute değerleri minTime kontrolü için önemli)
+    if (initial != null) {
+      final parts = initial.split(':');
+      if (parts.length == 2) {
+        tempSelectedHour = int.tryParse(parts[0]) ?? 8;
+        tempSelectedMinute = int.tryParse(parts[1]) ?? 0;
+      }
+    }
+
+    return await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (BuildContext innerContext) {
+        // innerContext kullanımı önemli
+
+        // **StatefulBuilder kullanarak iç durumu yönetelim**
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            // 1. Filtrelenmiş saat listesi
+            final List<int> filteredHours = allHours
+                .where((h) => h > minHour || (h == minHour && minMinute == 0))
+                .toList();
+
+            // 2. Filtreleme sonrası en küçük saatten daha küçük bir saat seçilmişse, onu ayarla
+            if (!filteredHours.contains(tempSelectedHour)) {
+              // Eğer başlangıç saati minTime'dan küçükse,
+              // otomatik olarak izin verilen en küçük saate geç
+              tempSelectedHour = filteredHours.first;
+            }
+
+            // 3. Başlangıç indeksi, filtrelenmiş listedeki pozisyonuna göre ayarlanmalı
+            int initialHourIndex = filteredHours.indexOf(tempSelectedHour);
+            if (initialHourIndex == -1) initialHourIndex = 0;
+
+            // 4. Dakika listesi de saat değişimine göre filtrelenecek
+            final List<int> filteredMinutes = minutes.where((m) {
+              if (tempSelectedHour == minHour) {
+                return m >= minMinute;
+              }
+              return true;
+            }).toList();
+
+            // 5. Dakika başlangıç indeksi, filtrelenmiş listedeki pozisyonuna göre ayarlanmalı
+            int initialMinuteIndex = filteredMinutes.indexOf(
+              tempSelectedMinute,
+            );
+            if (initialMinuteIndex == -1) initialMinuteIndex = 0;
+
+            return Container(
+              height: 250,
+              color: Colors.white,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 180,
+                    child: Row(
+                      children: [
+                        // SAAT ÇARKI
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController: FixedExtentScrollController(
+                              initialItem:
+                                  initialHourIndex, // BURASI DÜZELTİLDİ
+                            ),
+                            itemExtent: 32,
+                            onSelectedItemChanged: (index) {
+                              setState(() {
+                                tempSelectedHour =
+                                    filteredHours[index]; // BURASI DÜZELTİLDİ
+                                // Saat değişince dakika kontrolünü tekrar yap
+                                if (tempSelectedHour == minHour &&
+                                    tempSelectedMinute < minMinute) {
+                                  tempSelectedMinute = minMinute;
+                                }
+                              });
+                            },
+                            children: filteredHours
+                                .map(
+                                  (h) => Center(
+                                    child: Text(h.toString().padLeft(2, '0')),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                        // DAKİKA ÇARKI
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController: FixedExtentScrollController(
+                              initialItem:
+                                  initialMinuteIndex, // BURASI DÜZELTİLDİ
+                            ),
+                            itemExtent: 32,
+                            onSelectedItemChanged: (index) {
+                              tempSelectedMinute =
+                                  filteredMinutes[index]; // BURASI DÜZELTİLDİ
+                            },
+                            children: filteredMinutes
+                                .map(
+                                  (m) => Center(
+                                    child: Text(m.toString().padLeft(2, '0')),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  CupertinoButton(
+                    child: const Text("Tamam"),
+                    onPressed: () {
+                      final formatted =
+                          '${tempSelectedHour.toString().padLeft(2, '0')}:${tempSelectedMinute.toString().padLeft(2, '0')}';
+                      Navigator.pop(context, formatted);
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredEndTimes = _startTime == null
@@ -210,60 +359,50 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        labelText: 'Başlangıç Saati',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      value: _startTime,
-                      items: _timeSlots
-                          .map(
-                            (time) => DropdownMenuItem(
-                              value: time,
-                              child: Text(time),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _startTime = val;
-                          if (_endTime != null &&
-                              _endTime!.compareTo(_startTime!) < 0) {
-                            _endTime = null;
-                          }
-                        });
+                    child: buildTextField(
+                      label: "Başlangıç Saati",
+                      readOnly: true,
+                      controller: TextEditingController(text: _startTime ?? ""),
+                      onTap: () async {
+                        final result = await _showTimePicker(
+                          context,
+                          initial: _startTime,
+                        );
+                        if (result != null) {
+                          setState(() {
+                            _startTime = result;
+                            if (_endTime != null &&
+                                _endTime!.compareTo(_startTime!) < 0) {
+                              _endTime = null;
+                            }
+                          });
+                        }
                       },
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        labelText: 'Bitiş Saati',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      value: _endTime,
-                      items: filteredEndTimes
-                          .map(
-                            (time) => DropdownMenuItem(
-                              value: time,
-                              child: Text(time),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) => setState(() => _endTime = val),
+                    child: buildTextField(
+                      label: "Bitiş Saati",
+                      readOnly: true,
+                      controller: TextEditingController(text: _endTime ?? ""),
+                      onTap: () async {
+                        final result = await _showTimePicker(
+                          context,
+                          initial: _endTime,
+                          minTime: _startTime, // <-- BURASI ÖNEMLİ
+                        );
+                        if (result != null) {
+                          setState(() {
+                            _endTime = result;
+                          });
+                        }
+                      },
                     ),
                   ),
                 ],
               ),
+
               buildTextField(
                 label: 'Ücret',
                 keyboardType: TextInputType.number,
