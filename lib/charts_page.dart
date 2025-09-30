@@ -104,12 +104,12 @@ class _ChartsPageState extends State<ChartsPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Container(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: const Text(
                       textAlign: TextAlign.center,
                       "Günlük Araç Sayısı grafiği",
                       style: TextStyle(
@@ -117,53 +117,56 @@ class _ChartsPageState extends State<ChartsPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(
-                      height: 250,
-                      child: SfCartesianChart(
-                        primaryXAxis: NumericAxis(
-                          title: AxisTitle(text: 'Gün'),
-                          interval: 4,
-                          minimum: 0,
-                        ),
-                        primaryYAxis: NumericAxis(
-                          title: AxisTitle(text: 'Araç Sayısı'),
-                        ),
-                        tooltipBehavior: TooltipBehavior(
-                          enable: true,
-                          builder:
-                              (
-                                dynamic data,
-                                dynamic point,
-                                dynamic series,
-                                int pointIndex,
-                                int seriesIndex,
-                              ) {
-                                final DailyCarData d = data;
-                                return Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black87,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '${d.day} ${d.dayName}\nAraç Sayısı: ${d.carCount}',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                );
-                              },
-                        ),
-                        series: <ColumnSeries<DailyCarData, int>>[
-                          ColumnSeries<DailyCarData, int>(
-                            dataSource: carData,
-                            xValueMapper: (d, _) => d.day,
-                            yValueMapper: (d, _) => d.carCount,
-                            color: Colors.green,
-                          ),
-                        ],
+                  ),
+                  SizedBox(
+                    height: 250,
+                    child: SfCartesianChart(
+                      primaryXAxis: NumericAxis(
+                        title: AxisTitle(text: 'Gün'),
+                        interval: 4,
+                        minimum: 0,
                       ),
+                      primaryYAxis: NumericAxis(
+                        title: AxisTitle(text: 'Araç Sayısı'),
+                      ),
+                      tooltipBehavior: TooltipBehavior(
+                        enable: true,
+                        builder:
+                            (
+                              dynamic data,
+                              dynamic point,
+                              dynamic series,
+                              int pointIndex,
+                              int seriesIndex,
+                            ) {
+                              final DailyCarData d = data;
+                              return Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${d.day} ${d.dayName}\nAraç Sayısı: ${d.carCount}',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              );
+                            },
+                      ),
+                      series: <ColumnSeries<DailyCarData, int>>[
+                        ColumnSeries<DailyCarData, int>(
+                          dataSource: carData,
+                          xValueMapper: (d, _) => d.day,
+                          yValueMapper: (d, _) => d.carCount,
+                          color: Colors.green,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 32),
-                    const Text(
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: const Text(
                       textAlign: TextAlign.center,
                       "Günlük Gelir Grafiği",
                       style: TextStyle(
@@ -171,53 +174,53 @@ class _ChartsPageState extends State<ChartsPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(
-                      height: 250,
-                      child: SfCartesianChart(
-                        primaryXAxis: NumericAxis(
-                          title: AxisTitle(text: 'Gün'),
-                          interval: 4,
-                          minimum: 0,
-                        ),
-                        primaryYAxis: NumericAxis(
-                          title: AxisTitle(text: 'Gelir (TL)'),
-                        ),
-                        tooltipBehavior: TooltipBehavior(
-                          enable: true,
-                          builder:
-                              (
-                                dynamic data,
-                                dynamic point,
-                                dynamic series,
-                                int pointIndex,
-                                int seriesIndex,
-                              ) {
-                                final DailyCarData d = data;
-                                return Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black87,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '${d.day} ${d.dayName}\nGelir: ${d.carCount} TL',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                );
-                              },
-                        ),
-                        series: <ColumnSeries<DailyCarData, int>>[
-                          ColumnSeries<DailyCarData, int>(
-                            dataSource: incomeData,
-                            xValueMapper: (d, _) => d.day,
-                            yValueMapper: (d, _) => d.carCount,
-                            color: Colors.blue,
-                          ),
-                        ],
+                  ),
+                  SizedBox(
+                    height: 250,
+                    child: SfCartesianChart(
+                      primaryXAxis: NumericAxis(
+                        title: AxisTitle(text: 'Gün'),
+                        interval: 4,
+                        minimum: 0,
                       ),
+                      primaryYAxis: NumericAxis(
+                        title: AxisTitle(text: 'Gelir (TL)'),
+                      ),
+                      tooltipBehavior: TooltipBehavior(
+                        enable: true,
+                        builder:
+                            (
+                              dynamic data,
+                              dynamic point,
+                              dynamic series,
+                              int pointIndex,
+                              int seriesIndex,
+                            ) {
+                              final DailyCarData d = data;
+                              return Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${d.day} ${d.dayName}\nGelir: ${d.carCount} TL',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              );
+                            },
+                      ),
+                      series: <ColumnSeries<DailyCarData, int>>[
+                        ColumnSeries<DailyCarData, int>(
+                          dataSource: incomeData,
+                          xValueMapper: (d, _) => d.day,
+                          yValueMapper: (d, _) => d.carCount,
+                          color: Colors.blue,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
     );
