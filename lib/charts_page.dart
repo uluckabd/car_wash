@@ -107,119 +107,8 @@ class _ChartsPageState extends State<ChartsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40),
-                    child: const Text(
-                      textAlign: TextAlign.center,
-                      "Günlük Araç Sayısı grafiği",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 250,
-                    child: SfCartesianChart(
-                      primaryXAxis: NumericAxis(
-                        title: AxisTitle(text: 'Gün'),
-                        interval: 4,
-                        minimum: 0,
-                      ),
-                      primaryYAxis: NumericAxis(
-                        title: AxisTitle(text: 'Araç Sayısı'),
-                      ),
-                      tooltipBehavior: TooltipBehavior(
-                        enable: true,
-                        builder:
-                            (
-                              dynamic data,
-                              dynamic point,
-                              dynamic series,
-                              int pointIndex,
-                              int seriesIndex,
-                            ) {
-                              final DailyCarData d = data;
-                              return Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  '${d.day} ${d.dayName}\nAraç Sayısı: ${d.carCount}',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              );
-                            },
-                      ),
-                      series: <ColumnSeries<DailyCarData, int>>[
-                        ColumnSeries<DailyCarData, int>(
-                          dataSource: carData,
-                          xValueMapper: (d, _) => d.day,
-                          yValueMapper: (d, _) => d.carCount,
-                          color: Colors.green,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40),
-                    child: const Text(
-                      textAlign: TextAlign.center,
-                      "Günlük Gelir Grafiği",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 250,
-                    child: SfCartesianChart(
-                      primaryXAxis: NumericAxis(
-                        title: AxisTitle(text: 'Gün'),
-                        interval: 4,
-                        minimum: 0,
-                      ),
-                      primaryYAxis: NumericAxis(
-                        title: AxisTitle(text: 'Gelir (TL)'),
-                      ),
-                      tooltipBehavior: TooltipBehavior(
-                        enable: true,
-                        builder:
-                            (
-                              dynamic data,
-                              dynamic point,
-                              dynamic series,
-                              int pointIndex,
-                              int seriesIndex,
-                            ) {
-                              final DailyCarData d = data;
-                              return Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  '${d.day} ${d.dayName}\nGelir: ${d.carCount} TL',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              );
-                            },
-                      ),
-                      series: <ColumnSeries<DailyCarData, int>>[
-                        ColumnSeries<DailyCarData, int>(
-                          dataSource: incomeData,
-                          xValueMapper: (d, _) => d.day,
-                          yValueMapper: (d, _) => d.carCount,
-                          color: Colors.blue,
-                        ),
-                      ],
-                    ),
-                  ),
+                  GunAracGrafik(carData: carData),
+                  GunGelirGrafik(incomeData: incomeData),
                 ],
               ),
             ),
@@ -227,10 +116,146 @@ class _ChartsPageState extends State<ChartsPage> {
   }
 }
 
+class GunAracGrafik extends StatelessWidget {
+  const GunAracGrafik({super.key, required this.carData});
+
+  final List<DailyCarData> carData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 40, bottom: 25),
+          child: const Text(
+            textAlign: TextAlign.center,
+            "Günlük Araç Sayısı grafiği",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: SizedBox(
+            height: 250,
+            child: SfCartesianChart(
+              primaryXAxis: NumericAxis(
+                title: AxisTitle(text: 'Gün'),
+                interval: 4,
+                minimum: 0,
+              ),
+              primaryYAxis: NumericAxis(title: AxisTitle(text: 'Araç Sayısı')),
+              tooltipBehavior: TooltipBehavior(
+                enable: true,
+                builder:
+                    (
+                      dynamic data,
+                      dynamic point,
+                      dynamic series,
+                      int pointIndex,
+                      int seriesIndex,
+                    ) {
+                      final DailyCarData d = data;
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black87,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${d.day} ${d.dayName}\nAraç Sayısı: ${d.carCount}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      );
+                    },
+              ),
+              series: <ColumnSeries<DailyCarData, int>>[
+                ColumnSeries<DailyCarData, int>(
+                  dataSource: carData,
+                  xValueMapper: (d, _) => d.day,
+                  yValueMapper: (d, _) => d.carCount,
+                  color: Colors.green,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class GunGelirGrafik extends StatelessWidget {
+  const GunGelirGrafik({super.key, required this.incomeData});
+
+  final List<DailyCarData> incomeData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 40, bottom: 25),
+          child: const Text(
+            textAlign: TextAlign.center,
+            "Günlük Gelir Miktarı Grafiği",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: SizedBox(
+            height: 250,
+            child: SfCartesianChart(
+              primaryXAxis: NumericAxis(
+                title: AxisTitle(text: 'Gün'),
+                interval: 4,
+                minimum: 0,
+              ),
+              primaryYAxis: NumericAxis(title: AxisTitle(text: 'Gelir (TL)')),
+              tooltipBehavior: TooltipBehavior(
+                enable: true,
+                builder:
+                    (
+                      dynamic data,
+                      dynamic point,
+                      dynamic series,
+                      int pointIndex,
+                      int seriesIndex,
+                    ) {
+                      final DailyCarData d = data;
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black87,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${d.day} ${d.dayName}\nGelir: ${d.carCount} TL',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      );
+                    },
+              ),
+              series: <ColumnSeries<DailyCarData, int>>[
+                ColumnSeries<DailyCarData, int>(
+                  dataSource: incomeData,
+                  xValueMapper: (d, _) => d.day,
+                  yValueMapper: (d, _) => d.carCount,
+                  color: Colors.blue,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class DailyCarData {
   final int day;
   final int carCount;
-  final String dayName; // Gün adı eklendi
+  final String dayName;
   DailyCarData({
     required this.day,
     required this.carCount,

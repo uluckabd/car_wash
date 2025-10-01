@@ -65,6 +65,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool _isCalling = false;
   int selectedIndex = 0;
   final List<Map<String, dynamic>> randevular = [];
   final PageController pageController = PageController(initialPage: 0);
@@ -98,6 +99,19 @@ class _MyHomePageState extends State<MyHomePage> {
       randevular.clear();
       randevular.addAll(loadedAppointments);
     });
+  }
+
+  void _finishCallProcess(BuildContext context) {
+    // context.mounted: widget'ın hala ekranda (ağaçta) olup olmadığını kontrol eder.
+    if (_isCalling && context.mounted) {
+      // rootNavigator: true, pop işleminin her zaman en üstteki (dialog) Navigator'da çalışmasını sağlar.
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // Yükleniyor durumunu sıfırla
+      setState(() {
+        _isCalling = false;
+      });
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -164,20 +178,39 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _makePhoneCall(String? telefonNumarasi) async {
-    // 1. Gelen numara null veya boş mu?
+    // 1. Durumu başlat ve ProgressIndicator'ı göster
+    setState(() {
+      _isCalling = true;
+    });
+
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible:
+            false, // Kullanıcının tıklayarak kapatmasını engelle
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(color: primaryColor),
+          );
+        },
+      );
+    }
+
+    // 2. Gelen numara null veya boş mu?
     if (telefonNumarasi == null || telefonNumarasi.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Arama için telefon numarası boş.')),
         );
       }
+      _finishCallProcess(context); // Durumu sıfırla ve dialog'u kapat
       return; // İşlemi sonlandır
     }
 
-    // 2. Maskeleri temizle (Sadece rakamları al)
+    // 3. Maskeleri temizle (Sadece rakamları al)
     final rawPhoneNumber = telefonNumarasi.replaceAll(RegExp(r'[^\d]'), '');
 
-    // 3. Temizlenmiş numara da boş kaldıysa?
+    // 4. Temizlenmiş numara da boş kaldıysa?
     if (rawPhoneNumber.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -186,13 +219,14 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       }
+      _finishCallProcess(context); // Durumu sıfırla ve dialog'u kapat
       return; // İşlemi sonlandır
     }
 
-    // 4. URI'yi oluştur (Numaranın başına 'tel:' şemasını ekliyoruz)
+    // 5. URI'yi oluştur (Numaranın başına 'tel:' şemasını ekliyoruz)
     final Uri launchUri = Uri(scheme: 'tel', path: rawPhoneNumber);
 
-    // 5. URL'yi başlatmayı dene
+    // 6. URL'yi başlatmayı dene
     try {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
@@ -214,6 +248,9 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }
     }
+
+    // 7. İşlem bittikten sonra ProgressIndicator'ı kapat
+    _finishCallProcess(context);
   }
 
   String getFormattedDate(DateTime date) {
