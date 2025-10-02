@@ -23,9 +23,6 @@ const List<String> weekdays = [
 ];
 
 void main() {
-  // 'AppointmentSearch' tanımlı değilse, bu kısım hata verebilir.
-  // O sınıfın tanımlı olduğu dosyayı (büyük ihtimalle ArchiveScreen.dart veya ayrı bir dosya) kontrol edin.
-  // Bu güncelleme sadece 'MyHomePage' sınıfı içindir.
   runApp(const MyApp());
 }
 
@@ -42,7 +39,7 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [
         Locale('tr', 'TR'), // Türkçe
-        // Diğer diller de eklenebilir
+        // Buraya diğer diller de eklenebilir
       ],
       title: 'Car_Wash',
       debugShowCheckedModeBanner: false,
@@ -418,45 +415,88 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text(
-          selectedIndex == 0 ? "Ana Sayfa" : "Arşiv",
-          style: AppTextStyles.title,
-        ),
+
+        // 1. BAŞLIK (TITLE): selectedIndex'e göre başlık değişir
+        title: selectedIndex == 0
+            ? Row(
+                // Metinleri yan yana ve başlık alanının en soluna hizala
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline:
+                    TextBaseline.alphabetic, // Metin hizalaması için gerekli
+                children: [
+                  // ANA SAYFA METNİ (Daha büyük ve kalın)
+                  Text(
+                    "Ana Sayfa",
+                    style: AppTextStyles.title, // Mevcut büyük stiliniz
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(left: 35),
+                    child: Text(
+                      getFormattedDate(
+                        baseDate,
+                      ), // baseDate ve getFormattedDate gerekli
+                      style: const TextStyle(
+                        color: Colors.white, // Biraz daha soluk
+                        fontSize: 16, // Daha küçük font boyutu
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            // selectedIndex 1 ise "Arşiv" başlığını göster
+            : selectedIndex == 1
+            ? Text("Arşiv", style: AppTextStyles.title)
+            // Başka bir index ise varsayılan başlık
+            : Text("Başlık", style: AppTextStyles.title),
+
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [primaryColor, secondaryColor],
               begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              end: Alignment.topRight,
             ),
           ),
         ),
-        actions: selectedIndex == 1
+
+        // 2. EYLEMLER (ACTIONS): selectedIndex'e göre ikonlar değişir (Değişmedi)
+        actions: selectedIndex == 0
             ? [
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {
-                        // 'AppointmentSearch' sınıfının tanımlı olduğundan emin olun.
-                        showSearch(
-                          context: context,
-                          delegate: AppointmentSearch(randevular),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.analytics_outlined),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ReportChartsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                // Index 0 (Ana Sayfa) için Takvim İkonu
+                IconButton(
+                  icon: const Icon(
+                    Icons.calendar_month_outlined,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  onPressed: () => _selectDate(context),
+                ),
+              ]
+            : selectedIndex == 1
+            ? [
+                // Index 1 (Arşiv) için Arama ve Rapor ikonları
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    showSearch(
+                      context: context,
+                      delegate: AppointmentSearch(randevular),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.analytics_outlined),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReportChartsPage(),
+                      ),
+                    );
+                  },
                 ),
               ]
             : null,
@@ -467,35 +507,6 @@ class _MyHomePageState extends State<MyHomePage> {
           // Ana Sayfa içeriği
           Column(
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 20,
-                ),
-                color: Colors.blueAccent,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      getFormattedDate(baseDate),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.calendar_month_outlined,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                      onPressed: () => _selectDate(context),
-                    ),
-                  ],
-                ),
-              ),
               Expanded(
                 child: PageView.builder(
                   controller: pageController,
