@@ -65,7 +65,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _isCalling = false;
   int selectedIndex = 0;
   final List<Map<String, dynamic>> randevular = [];
   final PageController pageController = PageController(initialPage: 0);
@@ -99,19 +98,6 @@ class _MyHomePageState extends State<MyHomePage> {
       randevular.clear();
       randevular.addAll(loadedAppointments);
     });
-  }
-
-  void _finishCallProcess(BuildContext context) {
-    // context.mounted: widget'ın hala ekranda (ağaçta) olup olmadığını kontrol eder.
-    if (_isCalling && context.mounted) {
-      // rootNavigator: true, pop işleminin her zaman en üstteki (dialog) Navigator'da çalışmasını sağlar.
-      Navigator.of(context, rootNavigator: true).pop();
-
-      // Yükleniyor durumunu sıfırla
-      setState(() {
-        _isCalling = false;
-      });
-    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -178,39 +164,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _makePhoneCall(String? telefonNumarasi) async {
-    // 1. Durumu başlat ve ProgressIndicator'ı göster
-    setState(() {
-      _isCalling = true;
-    });
-
-    if (context.mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible:
-            false, // Kullanıcının tıklayarak kapatmasını engelle
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(color: primaryColor),
-          );
-        },
-      );
-    }
-
-    // 2. Gelen numara null veya boş mu?
+    // 1. Gelen numara null veya boş mu?
     if (telefonNumarasi == null || telefonNumarasi.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Arama için telefon numarası boş.')),
         );
       }
-      _finishCallProcess(context); // Durumu sıfırla ve dialog'u kapat
       return; // İşlemi sonlandır
     }
 
-    // 3. Maskeleri temizle (Sadece rakamları al)
+    // 2. Maskeleri temizle (Sadece rakamları al)
     final rawPhoneNumber = telefonNumarasi.replaceAll(RegExp(r'[^\d]'), '');
 
-    // 4. Temizlenmiş numara da boş kaldıysa?
+    // 3. Temizlenmiş numara da boş kaldıysa?
     if (rawPhoneNumber.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -219,14 +186,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       }
-      _finishCallProcess(context); // Durumu sıfırla ve dialog'u kapat
       return; // İşlemi sonlandır
     }
 
-    // 5. URI'yi oluştur (Numaranın başına 'tel:' şemasını ekliyoruz)
+    // 4. URI'yi oluştur (Numaranın başına 'tel:' şemasını ekliyoruz)
     final Uri launchUri = Uri(scheme: 'tel', path: rawPhoneNumber);
 
-    // 6. URL'yi başlatmayı dene
+    // 5. URL'yi başlatmayı dene
     try {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
@@ -248,112 +214,201 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }
     }
-
-    // 7. İşlem bittikten sonra ProgressIndicator'ı kapat
-    _finishCallProcess(context);
   }
 
   String getFormattedDate(DateTime date) {
     return "${weekdays[date.weekday - 1]} - ${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
 
-  // Yeniden kullanılabilir ve okunabilir bir widget metodu
+  // Yeniden kullanılabilir ve okunabilir bir widget metodu (TASARIM GÜNCELLENDİ!)
   Widget _buildAppointmentListTile(
     Map<String, dynamic> randevuBilgi,
     String start,
     String end,
   ) {
     final bool doluMu = randevuBilgi.isNotEmpty;
+    // Renk ve tema ayarları
+    final Color itemColor = doluMu ? primaryColor : secondaryColor;
+    final Color iconColor = doluMu
+        ? Colors.red.shade700
+        : Colors.green.shade600;
 
-    return ListTile(
-      // ✅ BURASI GÜNCELLENDİ: ListTile'a tıklandığında arama yapacak.
-      onTap: () {
-        if (doluMu) {
-          final String telefon = randevuBilgi['telefon'] ?? '';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Card(
+        // Card ile Listeleme öğesine hafif bir gölge ve köşe yuvarlaklığı ekliyoruz.
+        elevation: doluMu ? 4 : 1, // Dolu randevulara daha belirgin bir gölge
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: doluMu ? itemColor.withOpacity(0.5) : Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: ListTile(
+          // onTap ve diğer işlevsellikler olduğu gibi korunuyor.
+          onTap: () {
+            if (doluMu) {
+              final String telefon = randevuBilgi['telefon'] ?? '';
+              final rawPhoneNumber = telefon.replaceAll(RegExp(r'[^\d]'), '');
+              _makePhoneCall(rawPhoneNumber);
+            } else {
+              // Boş randevu için işlem (örn: Ekleme ekranına git)
+            }
+          },
 
-          // Telefon numarasındaki tüm maskeleri (boşluk, parantez, tire vb.) temizle
-          final rawPhoneNumber = telefon.replaceAll(RegExp(r'[^\d]'), '');
+          // ZAMAN DİLİMİ (Leading)
+          leading: Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+            child: Icon(Icons.access_time_filled, size: 25, color: iconColor),
+          ),
 
-          _makePhoneCall(rawPhoneNumber);
-        } else {
-          // Randevu boşsa, yeni randevu ekleme ekranına yönlendirebilirsin.
-          // Şimdilik boş bırakıyorum.
-        }
-      },
-      // inputFormatters: [phoneMask], // Gerekirse maskeyi burada tutmaya devam et
-      leading: Icon(
-        Icons.access_time,
-        size: 25,
-        color: doluMu ? Colors.red : Colors.green,
-      ),
-      title: Text("$start - $end"),
-      subtitle: doluMu
-          ? Text(
-              "${randevuBilgi["arac"]} - ${randevuBilgi["isimSoyisim"]} - ${randevuBilgi["telefon"]}",
-            )
-          : const Text("Boş"),
-      trailing: doluMu
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Düzenleme butonu (Arama butonu yerine kullanabilirsin, ama onTap'a ekledik.)
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.orange, size: 25),
-                  onPressed: () async {
-                    final updatedAppointment = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            AddAppointmentScreen(appointmentData: randevuBilgi),
+          // ZAMAN ARALIĞI (Title)
+          title: Text(
+            "$start - $end",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: doluMu ? Colors.black87 : Colors.green.shade600,
+            ),
+          ),
+
+          // RANDEVU BİLGİLERİ (Subtitle)
+          subtitle: doluMu
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Araç - İsimSoyisim
+                    Text(
+                      "${randevuBilgi["arac"]} - ${randevuBilgi["isimSoyisim"]}",
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                    if (updatedAppointment != null) {
-                      // Randevu güncelleme mantığı
-                      await dbService.updateAppointment(
-                        randevuBilgi['id'],
-                        updatedAppointment,
-                      );
-                      _loadAppointments();
-                    }
-                  },
-                ),
-                // Silme butonu
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red, size: 25),
-                  onPressed: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text("Randevuyu Sil"),
-                        content: const Text(
-                          "Bu randevuyu silmek istediğinize emin misiniz?",
+                    ),
+                    // Telefon numarası alt satırda, daha az belirgin
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text(
+                            "${randevuBilgi["telefon"]}  ",
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Colors.grey.shade600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                          ),
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text("Hayır"),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Icon(
+                            Icons.call,
+                            size: 15,
+                            color: Colors.green,
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text("Evet"),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirm == true) {
-                      await dbService.deleteAppointment(randevuBilgi['id']);
-                      _loadAppointments();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Randevu silindi")),
-                        );
-                      }
-                    }
-                  },
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Text(
+                  "Boş ",
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.green.shade600,
+                  ),
                 ),
-              ],
-            )
-          : null,
+
+          // AKSİYON BUTONLARI (Trailing)
+          trailing: doluMu
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Düzenleme Butonu
+                    IconButton(
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.blue,
+                        size: 24,
+                      ),
+                      onPressed: () async {
+                        final updatedAppointment = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddAppointmentScreen(
+                              appointmentData: randevuBilgi,
+                            ),
+                          ),
+                        );
+                        if (updatedAppointment != null) {
+                          await dbService.updateAppointment(
+                            randevuBilgi['id'],
+                            updatedAppointment,
+                          );
+                          _loadAppointments();
+                        }
+                      },
+                    ),
+                    // Silme Butonu
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: primaryColor,
+                        size: 24,
+                      ),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Randevuyu Sil"),
+                            content: const Text(
+                              "Bu randevuyu silmek istediğinize emin misiniz?",
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text("Hayır"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text("Evet"),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await dbService.deleteAppointment(randevuBilgi['id']);
+                          _loadAppointments();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Randevu silindi")),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    IconButton(
+                      onPressed: () async {
+                        final yeniRandevu = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AddAppointmentScreen(),
+                          ),
+                        );
+                        if (yeniRandevu != null) {
+                          await dbService.addAppointment(yeniRandevu);
+                          _loadAppointments();
+                        }
+                      },
+                      icon: const Icon(Icons.add_circle_sharp),
+                    ),
+                  ],
+                ), // Boşsa ekleme ikonu
+        ),
+      ),
     );
   }
 
@@ -514,22 +569,22 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final yeniRandevu = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddAppointmentScreen(),
-            ),
-          );
-          if (yeniRandevu != null) {
-            await dbService.addAppointment(yeniRandevu);
-            _loadAppointments();
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      //floatingActionButton: FloatingActionButton(
+      //  onPressed: () async {
+      //   final yeniRandevu = await Navigator.push(
+      //      context,
+      //      MaterialPageRoute(
+      //        builder: (context) => const AddAppointmentScreen(),
+      //      ),
+      //    );
+      //    if (yeniRandevu != null) {
+      //      await dbService.addAppointment(yeniRandevu);
+      //      _loadAppointments();
+      //    }
+      //  },
+      //  child: const Icon(Icons.add),
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
