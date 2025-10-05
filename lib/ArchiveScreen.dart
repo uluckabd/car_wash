@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'database_service.dart';
 
-const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
-const Color secondaryColor = Color(0xFF90CAF9);
-
 class ArchiveScreen extends StatelessWidget {
   final List<Map<String, dynamic>> randevular;
 
@@ -72,13 +69,7 @@ class ArchiveScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [primaryColor, secondaryColor],
-            begin: Alignment.topLeft,
-            end: Alignment.topRight,
-          ),
-        ),
+        color: Colors.white,
         child: ListView(
           children: List.generate(12, (index) {
             final monthNumber = index + 1;

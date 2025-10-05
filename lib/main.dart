@@ -432,13 +432,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
 
                   Padding(
-                    padding: const EdgeInsets.only(left: 35),
+                    padding: const EdgeInsets.only(left: 70),
                     child: Text(
                       getFormattedDate(
                         baseDate,
                       ), // baseDate ve getFormattedDate gerekli
                       style: const TextStyle(
-                        color: Colors.white, // Biraz daha soluk
+                        color: Colors.black, // Biraz daha soluk
                         fontSize: 16, // Daha küçük font boyutu
                         fontWeight: FontWeight.normal,
                       ),
@@ -452,15 +452,7 @@ class _MyHomePageState extends State<MyHomePage> {
             // Başka bir index ise varsayılan başlık
             : Text("Başlık", style: AppTextStyles.title),
 
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primaryColor, secondaryColor],
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-            ),
-          ),
-        ),
+        flexibleSpace: Container(color: Colors.white),
 
         // 2. EYLEMLER (ACTIONS): selectedIndex'e göre ikonlar değişir (Değişmedi)
         actions: selectedIndex == 0
@@ -469,7 +461,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 IconButton(
                   icon: const Icon(
                     Icons.calendar_month_outlined,
-                    color: Colors.white,
+                    color: Colors.black,
                     size: 24,
                   ),
                   onPressed: () => _selectDate(context),
@@ -479,7 +471,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ? [
                 // Index 1 (Arşiv) için Arama ve Rapor ikonları
                 IconButton(
-                  icon: const Icon(Icons.search),
+                  icon: const Icon(Icons.search, color: Colors.black),
                   onPressed: () {
                     showSearch(
                       context: context,
@@ -488,7 +480,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.analytics_outlined),
+                  icon: const Icon(
+                    Icons.analytics_outlined,
+                    color: Colors.black,
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -558,13 +553,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [primaryColor, secondaryColor],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
         child: BottomNavigationBar(
           backgroundColor: Colors.transparent,
           currentIndex: selectedIndex,

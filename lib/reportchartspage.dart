@@ -4,9 +4,6 @@ import 'package:path/path.dart';
 import 'charts_page.dart';
 import 'database_service.dart';
 
-const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
-const Color secondaryColor = Color(0xFF90CAF9);
-
 class MonthCard extends StatelessWidget {
   final String monthName;
   final VoidCallback onTap;
@@ -123,13 +120,7 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
         flexibleSpace: Appcolor(),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [primaryColor, secondaryColor],
-            begin: Alignment.topLeft,
-            end: Alignment.topRight,
-          ),
-        ),
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: ListView(

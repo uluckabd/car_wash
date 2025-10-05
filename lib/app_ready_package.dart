@@ -10,13 +10,13 @@ class AppTextStyles {
   static TextStyle title = GoogleFonts.lato(
     fontSize: 25,
     fontWeight: FontWeight.bold,
-    color: Colors.white,
+    color: Colors.black,
     wordSpacing: 2,
     letterSpacing: 1,
   );
 }
 
-// uygulama arka planı için kullandığımız paket
+// Uygulama arka planı için kullandığımız paket
 class Appcolor extends StatelessWidget {
   const Appcolor({super.key});
 
@@ -24,12 +24,10 @@ class Appcolor extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFF0101), Color(0xFF90CAF9)],
-          begin: Alignment.topLeft,
-          end: Alignment.topRight,
-        ),
+        color: Colors.white, // Arka planı düz beyaza ayarlandı
       ),
+      // Alternatif olarak:
+      // color: Colors.white, // Decoration kullanmadan da direkt Container'a renk verebilirsin
     );
   }
 }
