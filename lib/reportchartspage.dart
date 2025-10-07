@@ -1,4 +1,5 @@
 import 'package:car_wash/app_ready_package.dart';
+import 'package:car_wash/main.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'charts_page.dart';
@@ -13,6 +14,7 @@ class MonthCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white,
       margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -115,14 +117,30 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: darkBlue,
         actions: [SortMenu(onSelected: _sortData)],
         title: Text("Aylık Grafikler", style: AppTextStyles.title),
-        flexibleSpace: Appcolor(),
       ),
       body: Container(
-        color: Colors.white,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            // Koyu mavinin tonları
+            colors: [
+              Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
+              Color.fromARGB(
+                255,
+                120,
+                120,
+                120,
+              ), // Alt kısım (Biraz daha açık Lacivert/Mavi)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
           child: ListView(
             children: monthlyData.map((month) {
               final name = monthNames[month['month']] ?? month['month'];

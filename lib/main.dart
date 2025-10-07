@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 // Uygulama genelinde kullanılacak renkleri ve metinleri sabitler olarak tanımlıyoruz.
 const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
 const Color secondaryColor = Color(0xFF90CAF9);
+const Color darkBlue = Color(0xFF1B2A38);
 const List<String> weekdays = [
   "Pazartesi",
   "Salı",
@@ -44,6 +45,18 @@ class MyApp extends StatelessWidget {
       title: 'Car_Wash',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        appBarTheme: AppBarTheme(
+          color: darkBlue,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+
+            wordSpacing: 2,
+            letterSpacing: 1,
+          ),
+        ),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         primaryColor: primaryColor,
         primaryColorLight: secondaryColor,
@@ -105,10 +118,17 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext builder) {
         return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
           height:
               MediaQuery.of(context).size.height /
               3, // Ekranın 1/3'ünü kaplasın
-          color: Colors.white, // Arka plan rengini belirle
+          // Arka plan rengini belirle
           child: Column(
             children: [
               Expanded(
@@ -126,7 +146,13 @@ class _MyHomePageState extends State<MyHomePage> {
               // Tamam butonu
               CupertinoButton(
                 onPressed: () => Navigator.pop(context), // Menüyü kapat
-                child: const Text('Tamam'),
+                child: const Text(
+                  'Tamam',
+                  style: TextStyle(
+                    color: darkBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
@@ -233,6 +259,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Card(
+        color: Colors.white,
         // Card ile Listeleme öğesine hafif bir gölge ve köşe yuvarlaklığı ekliyoruz.
         elevation: doluMu ? 4 : 1, // Dolu randevulara daha belirgin bir gölge
         shape: RoundedRectangleBorder(
@@ -266,7 +293,7 @@ class _MyHomePageState extends State<MyHomePage> {
             "$start - $end",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: doluMu ? Colors.black87 : Colors.green.shade600,
+              color: doluMu ? Colors.black87 : darkBlue,
             ),
           ),
 
@@ -414,7 +441,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // IndexedStack kullanarak sadece aktif olan sayfayı çiziyoruz.
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: darkBlue,
 
         // 1. BAŞLIK (TITLE): selectedIndex'e göre başlık değişir
         title: selectedIndex == 0
@@ -426,19 +453,16 @@ class _MyHomePageState extends State<MyHomePage> {
                     TextBaseline.alphabetic, // Metin hizalaması için gerekli
                 children: [
                   // ANA SAYFA METNİ (Daha büyük ve kalın)
-                  Text(
-                    "Ana Sayfa",
-                    style: AppTextStyles.title, // Mevcut büyük stiliniz
-                  ),
+                  Text("Ana Sayfa"),
 
                   Padding(
-                    padding: const EdgeInsets.only(left: 70),
+                    padding: const EdgeInsets.only(left: 12),
                     child: Text(
                       getFormattedDate(
                         baseDate,
                       ), // baseDate ve getFormattedDate gerekli
                       style: const TextStyle(
-                        color: Colors.black, // Biraz daha soluk
+                        color: Colors.white, // Biraz daha soluk
                         fontSize: 16, // Daha küçük font boyutu
                         fontWeight: FontWeight.normal,
                       ),
@@ -452,18 +476,12 @@ class _MyHomePageState extends State<MyHomePage> {
             // Başka bir index ise varsayılan başlık
             : Text("Başlık", style: AppTextStyles.title),
 
-        flexibleSpace: Container(color: Colors.white),
-
         // 2. EYLEMLER (ACTIONS): selectedIndex'e göre ikonlar değişir (Değişmedi)
         actions: selectedIndex == 0
             ? [
                 // Index 0 (Ana Sayfa) için Takvim İkonu
                 IconButton(
-                  icon: const Icon(
-                    Icons.calendar_month_outlined,
-                    color: Colors.black,
-                    size: 24,
-                  ),
+                  icon: const Icon(Icons.calendar_month_outlined, size: 24),
                   onPressed: () => _selectDate(context),
                 ),
               ]
@@ -471,7 +489,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ? [
                 // Index 1 (Arşiv) için Arama ve Rapor ikonları
                 IconButton(
-                  icon: const Icon(Icons.search, color: Colors.black),
+                  icon: const Icon(Icons.search, color: Colors.white),
                   onPressed: () {
                     showSearch(
                       context: context,
@@ -482,7 +500,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 IconButton(
                   icon: const Icon(
                     Icons.analytics_outlined,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                   onPressed: () {
                     Navigator.push(
@@ -496,65 +514,78 @@ class _MyHomePageState extends State<MyHomePage> {
               ]
             : null,
       ),
-      body: IndexedStack(
-        index: selectedIndex,
-        children: [
-          // Ana Sayfa içeriği
-          Column(
-            children: [
-              Expanded(
-                child: PageView.builder(
-                  controller: pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      baseDate = DateTime.now().add(Duration(days: index));
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    final currentDate = DateTime.now().add(
-                      Duration(days: index),
-                    );
-                    final randevularBuGun = randevular.where((r) {
-                      final randevuTarihi = DateFormat(
-                        'dd/MM/yyyy',
-                      ).parse(r["tarih"]);
-                      return randevuTarihi.year == currentDate.year &&
-                          randevuTarihi.month == currentDate.month &&
-                          randevuTarihi.day == currentDate.day;
-                    }).toList();
-
-                    return ListView.builder(
-                      itemCount: _slots.length - 1,
-                      itemBuilder: (context, i) {
-                        final start = _slots[i];
-                        final end = _slots[i + 1];
-                        Map<String, dynamic> randevuBilgi = {};
-                        for (var r in randevularBuGun) {
-                          if (r["baslangic"].compareTo(end) < 0 &&
-                              r["bitis"].compareTo(start) > 0) {
-                            randevuBilgi = r;
-                            break;
-                          }
-                        }
-                        return _buildAppointmentListTile(
-                          randevuBilgi,
-                          start,
-                          end,
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            // Koyu mavinin tonları
+            colors: [
+              Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
+              Color(0xFF1F3249), // Alt kısım (Biraz daha açık Lacivert/Mavi)
             ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          // Arşiv Sayfası
-          ArchiveScreen(randevular: randevular),
-        ],
+        ),
+        child: IndexedStack(
+          index: selectedIndex,
+          children: [
+            // Ana Sayfa içeriği
+            Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        baseDate = DateTime.now().add(Duration(days: index));
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final currentDate = DateTime.now().add(
+                        Duration(days: index),
+                      );
+                      final randevularBuGun = randevular.where((r) {
+                        final randevuTarihi = DateFormat(
+                          'dd/MM/yyyy',
+                        ).parse(r["tarih"]);
+                        return randevuTarihi.year == currentDate.year &&
+                            randevuTarihi.month == currentDate.month &&
+                            randevuTarihi.day == currentDate.day;
+                      }).toList();
+
+                      return ListView.builder(
+                        itemCount: _slots.length - 1,
+                        itemBuilder: (context, i) {
+                          final start = _slots[i];
+                          final end = _slots[i + 1];
+                          Map<String, dynamic> randevuBilgi = {};
+                          for (var r in randevularBuGun) {
+                            if (r["baslangic"].compareTo(end) < 0 &&
+                                r["bitis"].compareTo(start) > 0) {
+                              randevuBilgi = r;
+                              break;
+                            }
+                          }
+                          return _buildAppointmentListTile(
+                            randevuBilgi,
+                            start,
+                            end,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            // Arşiv Sayfası
+            ArchiveScreen(randevular: randevular),
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: darkBlue,
           currentIndex: selectedIndex,
           onTap: (index) {
             setState(() => selectedIndex = index);

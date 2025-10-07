@@ -109,7 +109,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date,
                   initialDateTime: tempPickedDate,
-                  minimumDate: DateTime(2023),
+                  minimumDate: DateTime(2025),
                   maximumDate: DateTime(2030),
                   onDateTimeChanged: (DateTime newDate) {
                     tempPickedDate = newDate;
@@ -339,7 +339,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         : _timeSlots.where((t) => t.compareTo(_startTime!) >= 0).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE3F2FD),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           widget.appointmentData == null ? 'Yeni Randevu' : 'Randevu Güncelle',
@@ -348,6 +348,17 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         flexibleSpace: Appcolor(),
       ),
       body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            // Koyu mavinin tonları
+            colors: [
+              Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
+              Color(0xFF1F3249), // Alt kısım (Biraz daha açık Lacivert/Mavi)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -432,7 +443,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF90CAF9),
+                        backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 14,
@@ -535,7 +546,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         Navigator.pop(context, appointment);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF0101),
+                        backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 14,

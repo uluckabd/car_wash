@@ -1,10 +1,8 @@
 import 'package:car_wash/app_ready_package.dart';
+import 'package:car_wash/main.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'database_service.dart';
-
-const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
-const Color secondaryColor = Color(0xFF90CAF9);
 
 class ChartsPage extends StatefulWidget {
   final String currentMonth;
@@ -94,17 +92,33 @@ class _ChartsPageState extends State<ChartsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: darkBlue,
         title: Text(
           "${widget.currentMonth} Ayı Grafikleri",
           style: AppTextStyles.title,
         ),
-        flexibleSpace: Appcolor(),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  // Koyu mavinin tonları
+                  colors: [
+                    Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
+                    Color.fromARGB(
+                      255,
+                      120,
+                      120,
+                      120,
+                    ), // Alt kısım (Biraz daha açık Lacivert/Mavi)
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -131,7 +145,11 @@ class GunAracGrafik extends StatelessWidget {
           child: const Text(
             textAlign: TextAlign.center,
             "Günlük Araç Sayısı grafiği",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
         Padding(
@@ -140,11 +158,25 @@ class GunAracGrafik extends StatelessWidget {
             height: 250,
             child: SfCartesianChart(
               primaryXAxis: NumericAxis(
-                title: AxisTitle(text: 'Gün'),
+                labelStyle: const TextStyle(color: Colors.white),
+                axisLine: const AxisLine(color: Colors.white70, width: 0.5),
+                majorGridLines: const MajorGridLines(color: Colors.white12),
+                title: AxisTitle(
+                  text: 'Gün',
+                  textStyle: TextStyle(color: Colors.white),
+                ),
                 interval: 4,
                 minimum: 0,
               ),
-              primaryYAxis: NumericAxis(title: AxisTitle(text: 'Araç Sayısı')),
+              primaryYAxis: NumericAxis(
+                labelStyle: const TextStyle(color: Colors.white),
+
+                majorGridLines: const MajorGridLines(color: Colors.blueGrey),
+                title: AxisTitle(
+                  text: 'Araç Sayısı',
+                  textStyle: TextStyle(color: Colors.white),
+                ),
+              ),
               tooltipBehavior: TooltipBehavior(
                 enable: true,
                 builder:
@@ -159,7 +191,7 @@ class GunAracGrafik extends StatelessWidget {
                       return Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black87,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -199,7 +231,11 @@ class GunGelirGrafik extends StatelessWidget {
           child: const Text(
             textAlign: TextAlign.center,
             "Günlük Gelir Miktarı Grafiği",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
         Padding(
@@ -208,11 +244,25 @@ class GunGelirGrafik extends StatelessWidget {
             height: 250,
             child: SfCartesianChart(
               primaryXAxis: NumericAxis(
-                title: AxisTitle(text: 'Gün'),
+                labelStyle: const TextStyle(color: Colors.white),
+                axisLine: const AxisLine(color: Colors.white70, width: 0.5),
+                majorGridLines: const MajorGridLines(color: Colors.blueGrey),
+                title: AxisTitle(
+                  text: 'Gün',
+                  textStyle: TextStyle(color: Colors.white),
+                ),
                 interval: 4,
                 minimum: 0,
               ),
-              primaryYAxis: NumericAxis(title: AxisTitle(text: 'Gelir (TL)')),
+              primaryYAxis: NumericAxis(
+                labelStyle: const TextStyle(color: Colors.white),
+
+                majorGridLines: const MajorGridLines(color: Colors.white12),
+                title: AxisTitle(
+                  text: 'Gelir (TL)',
+                  textStyle: TextStyle(color: Colors.white),
+                ),
+              ),
               tooltipBehavior: TooltipBehavior(
                 enable: true,
                 builder:
@@ -227,7 +277,7 @@ class GunGelirGrafik extends StatelessWidget {
                       return Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black87,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(

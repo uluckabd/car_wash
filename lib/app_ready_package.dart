@@ -10,7 +10,7 @@ class AppTextStyles {
   static TextStyle title = GoogleFonts.lato(
     fontSize: 25,
     fontWeight: FontWeight.bold,
-    color: Colors.black,
+
     wordSpacing: 2,
     letterSpacing: 1,
   );

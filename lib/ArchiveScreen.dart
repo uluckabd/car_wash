@@ -69,7 +69,18 @@ class ArchiveScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        color: Colors.white,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            // Koyu mavinin tonları
+            colors: [
+              Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
+              Color(0xFF1F3249), // Alt kısım (Biraz daha açık Lacivert/Mavi)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+
         child: ListView(
           children: List.generate(12, (index) {
             final monthNumber = index + 1;
@@ -77,42 +88,45 @@ class ArchiveScreen extends StatelessWidget {
             final ayRandevulari = ayGruplari[monthNumber] ?? [];
             final toplamUcret = calculateMonthTotal(ayRandevulari);
 
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-              child: ExpansionTile(
-                title: Text(
-                  '$monthName (${ayRandevulari.length} randevu - Toplam: ${toplamUcret.toStringAsFixed(2)}₺)',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Card(
+                color: Colors.white,
+                child: ExpansionTile(
+                  title: Text(
+                    '$monthName (${ayRandevulari.length} randevu - Toplam: ${toplamUcret.toStringAsFixed(2)}₺)',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                children: ayRandevulari.isEmpty
-                    ? [const ListTile(title: Text('Bu ayda randevu yok'))]
-                    : groupByDay(ayRandevulari).entries
-                          .map(
-                            (gunEntry) => ExpansionTile(
-                              title: Text(
-                                '${gunEntry.key} (${gunEntry.value.length} randevu)',
-                                style: const TextStyle(fontSize: 16),
+                  children: ayRandevulari.isEmpty
+                      ? [const ListTile(title: Text('Bu ayda randevu yok'))]
+                      : groupByDay(ayRandevulari).entries
+                            .map(
+                              (gunEntry) => ExpansionTile(
+                                title: Text(
+                                  '${gunEntry.key} (${gunEntry.value.length} randevu)',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                children: gunEntry.value.map((r) {
+                                  return ListTile(
+                                    leading: const Icon(Icons.access_time),
+                                    title: Text(
+                                      '${r['baslangic']} - ${r['bitis']}',
+                                    ),
+                                    subtitle: Text(
+                                      '${r['isimSoyisim']} - ${r['telefon']} - ${r['arac']}',
+                                    ),
+                                    trailing: r['ucret'] != null
+                                        ? Text('${r['ucret']}₺')
+                                        : null,
+                                  );
+                                }).toList(),
                               ),
-                              children: gunEntry.value.map((r) {
-                                return ListTile(
-                                  leading: const Icon(Icons.access_time),
-                                  title: Text(
-                                    '${r['baslangic']} - ${r['bitis']}',
-                                  ),
-                                  subtitle: Text(
-                                    '${r['isimSoyisim']} - ${r['telefon']} - ${r['arac']}',
-                                  ),
-                                  trailing: r['ucret'] != null
-                                      ? Text('${r['ucret']}₺')
-                                      : null,
-                                );
-                              }).toList(),
-                            ),
-                          )
-                          .toList(),
+                            )
+                            .toList(),
+                ),
               ),
             );
           }),
