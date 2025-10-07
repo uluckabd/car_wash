@@ -5,26 +5,112 @@ import 'package:path/path.dart';
 import 'charts_page.dart';
 import 'database_service.dart';
 
-class MonthCard extends StatelessWidget {
+// Turkuaz (Cyan) rengi vurgusuyla güncellenmiş MonthCard
+// Yükleme durumu eklemek için StatefulWidget'a dönüştürüldü.
+class MonthCard extends StatefulWidget {
   final String monthName;
   final VoidCallback onTap;
 
   const MonthCard({super.key, required this.monthName, required this.onTap});
 
+  // Turkuaz vurgu rengi (önceki Gelir Grafiği rengine benzer)
+  static const Color accentColor = Color(0xFF00BCD4); // Turkuaz/Cam Göbeği
+  // Kartın içindeki şeffaf arka plan rengi
+  static const Color cardInternalColor = Color.fromRGBO(255, 105, 97, 0.2);
+
+  @override
+  State<MonthCard> createState() => _MonthCardState();
+}
+
+class _MonthCardState extends State<MonthCard> {
+  // Yükleme durumunu izlemek için değişken
+  bool _isLoading = false;
+
+  void _handleTap() async {
+    // Yüklemeyi başlat
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Ana onTap fonksiyonunu çalıştır
+    // (Navigator.push işlemi burada gerçekleşir)
+    widget.onTap();
+
+    // Sayfa geçiş animasyonu başlasın diye kısa bir süre bekleyip yüklemeyi kapatıyoruz.
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        title: Text(
-          monthName,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      decoration: BoxDecoration(
+        // Kartın Arka Plan Rengi: Hafif şeffaf gri/beyaz
+        color: MonthCard.cardInternalColor,
+        borderRadius: BorderRadius.circular(12),
+        // Işın Efekti (Gölge): Turkuaz
+        boxShadow: [
+          BoxShadow(
+            color: MonthCard.accentColor.withOpacity(0.4),
+            blurRadius: 6.0,
+            spreadRadius: 1.0,
+          ),
+        ],
+        // Kenarlık (Bordür) Rengi: Turkuaz
+        border: Border.all(color: MonthCard.accentColor, width: 1.5),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap:
+              _handleTap, // Kendi yazdığımız handleTap fonksiyonunu kullanıyoruz
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 16.0,
+              horizontal: 16.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.monthName,
+                    // Metin Rengi: Beyaz
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                // Yükleme durumu kontrolü:
+                _isLoading
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            MonthCard.accentColor, // Turkuaz yükleniyor
+                          ),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+              ],
+            ),
+          ),
         ),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: onTap,
       ),
     );
   }
@@ -66,12 +152,10 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
     final db = DatabaseService();
     final dbData = await db.getMonthlySummary();
 
-    // Başlangıç: 12 ayı default 0 değerlerle doldur
     final temp = monthNames.entries.map((e) {
       return {"month": e.key, "totalAmount": 0, "vehicleCount": 0};
     }).toList();
 
-    // Gelen verilerle güncelle
     for (var item in dbData) {
       final index = temp.indexWhere((m) => m["month"] == item["month"]);
       if (index != -1) {
@@ -105,7 +189,6 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
           (a, b) => (a['vehicleCount'] ?? 0).compareTo(b['vehicleCount'] ?? 0),
         );
       } else {
-        // Varsayılan: Ocak → Aralık
         monthlyData.sort(
           (a, b) => int.parse(a['month']).compareTo(int.parse(b['month'])),
         );
@@ -139,7 +222,6 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
             end: Alignment.bottomCenter,
           ),
         ),
-
         child: Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
           child: ListView(
@@ -149,10 +231,32 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
                 monthName:
                     "$name (Ücret: ${month['totalAmount'] ?? 0}, Araç: ${month['vehicleCount'] ?? 0})",
                 onTap: () {
+                  // Animasyonlu Sayfa Geçişi (Sağdan Sola Kayma)
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => ChartsPage(currentMonth: name),
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          ChartsPage(currentMonth: name),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(1.0, 0.0); // Sağdan başla
+                            const end = Offset.zero; // Ortaya gel
+                            const curve =
+                                Curves.easeOut; // Yumuşak geçiş eğrisi
+
+                            var tween = Tween(
+                              begin: begin,
+                              end: end,
+                            ).chain(CurveTween(curve: curve));
+
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
+                      transitionDuration: const Duration(
+                        milliseconds: 400,
+                      ), // Geçiş süresi
                     ),
                   );
                 },
@@ -174,6 +278,9 @@ class SortMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       color: darkBlue,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20), // Köşeleri yuvarlak yaptık
+      ),
       icon: const Icon(Icons.sort, color: Colors.white, size: 30),
       onSelected: onSelected,
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[

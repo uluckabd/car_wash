@@ -503,10 +503,29 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Colors.white,
                   ),
                   onPressed: () {
+                    // Sağdan Sola Kayma Animasyonu
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => ReportChartsPage(),
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const ReportChartsPage(), // Hedef sayfa
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0); // Sağdan başla
+                              const end = Offset.zero; // Ortaya gel
+                              const curve = Curves.easeOut; // Yumuşak geçiş
+
+                              var tween = Tween(
+                                begin: begin,
+                                end: end,
+                              ).chain(CurveTween(curve: curve));
+
+                              return SlideTransition(
+                                position: animation.drive(tween),
+                                child: child,
+                              );
+                            },
+                        transitionDuration: const Duration(milliseconds: 400),
                       ),
                     );
                   },
