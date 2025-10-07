@@ -117,6 +117,7 @@ class _ReportChartsPageState extends State<ReportChartsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: darkBlue,
         actions: [SortMenu(onSelected: _sortData)],
         title: Text("Aylık Grafikler", style: AppTextStyles.title),
@@ -172,28 +173,44 @@ class SortMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
+      color: darkBlue,
       icon: const Icon(Icons.sort, color: Colors.white, size: 30),
       onSelected: onSelected,
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         const PopupMenuItem(
           value: 'default',
-          child: Text('Varsayılan (Aylara göre)'),
+          child: Text(
+            'Varsayılan (Aylara göre)',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         const PopupMenuItem(
           value: 'amount_desc',
-          child: Text('Miktara göre en çok'),
+          child: Text(
+            'Miktara göre en çok',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         const PopupMenuItem(
           value: 'amount_asc',
-          child: Text('Miktara göre en az'),
+          child: Text(
+            'Miktara göre en az',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         const PopupMenuItem(
           value: 'vehicle_desc',
-          child: Text('Araç sayısına göre en çok'),
+          child: Text(
+            'Araç sayısına göre en çok',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         const PopupMenuItem(
           value: 'vehicle_asc',
-          child: Text('Araç sayısına göre en az'),
+          child: Text(
+            'Araç sayısına göre en az',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ],
     );

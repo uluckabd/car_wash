@@ -93,6 +93,7 @@ class _ChartsPageState extends State<ChartsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: darkBlue,
         title: Text(
           "${widget.currentMonth} Ayı Grafikleri",
@@ -104,7 +105,7 @@ class _ChartsPageState extends State<ChartsPage> {
           : Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  // Koyu mavinin tonları
+                  // Koyu mavinin tonlarız
                   colors: [
                     Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
                     Color.fromARGB(
@@ -196,7 +197,10 @@ class GunAracGrafik extends StatelessWidget {
                         ),
                         child: Text(
                           '${d.day} ${d.dayName}\nAraç Sayısı: ${d.carCount}',
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(
+                            color: darkBlue,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       );
                     },
@@ -206,7 +210,7 @@ class GunAracGrafik extends StatelessWidget {
                   dataSource: carData,
                   xValueMapper: (d, _) => d.day,
                   yValueMapper: (d, _) => d.carCount,
-                  color: Colors.green,
+                  color: Color(0xFFFFA000),
                 ),
               ],
             ),
@@ -282,7 +286,10 @@ class GunGelirGrafik extends StatelessWidget {
                         ),
                         child: Text(
                           '${d.day} ${d.dayName}\nGelir: ${d.carCount} TL',
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(
+                            color: darkBlue,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       );
                     },
@@ -292,7 +299,7 @@ class GunGelirGrafik extends StatelessWidget {
                   dataSource: incomeData,
                   xValueMapper: (d, _) => d.day,
                   yValueMapper: (d, _) => d.carCount,
-                  color: Colors.blue,
+                  color: Color(0xFF00BCD4),
                 ),
               ],
             ),
