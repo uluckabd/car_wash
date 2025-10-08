@@ -285,7 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
           leading: Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-            child: Icon(Icons.access_time_filled, size: 25, color: iconColor),
+            child: Icon(Icons.minor_crash_rounded, size: 25, color: iconColor),
           ),
 
           // ZAMAN ARALIĞI (Title)
@@ -328,7 +328,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Icon(
                             Icons.call,
                             size: 15,
-                            color: Colors.green,
+                            color: Colors.green[600],
                           ),
                         ),
                       ],
@@ -355,19 +355,79 @@ class _MyHomePageState extends State<MyHomePage> {
                         size: 24,
                       ),
                       onPressed: () async {
+                        // Randevu düzenleme sayfasına PageRouteBuilder ile Zoom animasyonu uyguluyoruz.
                         final updatedAppointment = await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => AddAppointmentScreen(
-                              appointmentData: randevuBilgi,
+                          // *** ZOOM (SCALE) ANIMASYONU BAŞLANGICI ***
+                          PageRouteBuilder(
+                            // Sayfa giriş süresi
+                            transitionDuration: const Duration(
+                              milliseconds: 500,
                             ),
+                            // Sayfa çıkış süresi (geri dönerken)
+                            reverseTransitionDuration: const Duration(
+                              milliseconds: 400,
+                            ),
+                            // Gösterilecek olan sayfa (Mevcut randevu bilgisini aktarıyoruz!)
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    AddAppointmentScreen(
+                                      appointmentData:
+                                          randevuBilgi, // Veri aktarımı burada
+                                    ),
+                            // Animasyonun kendisi (Fade + Scale)
+                            transitionsBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
+                                  // Yavaşça Belirme (Fade)
+                                  final fadeAnimation =
+                                      Tween<double>(
+                                        begin: 0.0,
+                                        end: 1.0,
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve:
+                                              Curves.easeOut, // Yumuşak belirme
+                                        ),
+                                      );
+
+                                  // Küçülüp Büyüme (Scale - Zoom)
+                                  final scaleAnimation =
+                                      Tween<double>(
+                                        begin: 0.8, // %80'den başla
+                                        end: 1.0, // %100'e zoom yap
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves
+                                              .easeOutBack, // Yaylanmalı zoom efekti
+                                        ),
+                                      );
+
+                                  return FadeTransition(
+                                    opacity: fadeAnimation,
+                                    child: ScaleTransition(
+                                      scale: scaleAnimation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
                           ),
+                          // *** ZOOM (SCALE) ANIMASYONU SONU ***
                         );
+
                         if (updatedAppointment != null) {
+                          // Güncelleme başarılıysa, veritabanını güncelle
                           await dbService.updateAppointment(
                             randevuBilgi['id'],
                             updatedAppointment,
                           );
+                          // Randevu listesini yenile
                           _loadAppointments();
                         }
                       },
@@ -380,31 +440,74 @@ class _MyHomePageState extends State<MyHomePage> {
                         size: 24,
                       ),
                       onPressed: () async {
-                        final confirm = await showDialog<bool>(
+                        final confirm = await showGeneralDialog<bool>(
                           context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text("Randevuyu Sil"),
-                            content: const Text(
-                              "Bu randevuyu silmek istediğinize emin misiniz?",
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text("Hayır"),
+                          barrierDismissible:
+                              true, // Diyalog dışına tıklanırsa kapanabilir
+                          barrierLabel: 'Randevu Silme Onayı',
+                          barrierColor:
+                              Colors.black54, // Arka plan karartma rengi
+                          transitionDuration: const Duration(
+                            milliseconds: 300,
+                          ), // Animasyon süresi
+                          // *** ANIMASYON EFEKTİ BURADA TANIMLANIYOR ***
+                          transitionBuilder: (context, a1, a2, child) {
+                            // a1: Animasyon kontrolcüsü
+                            return Transform.scale(
+                              scale: a1.value, // 0.0'dan 1.0'a büyütme
+                              child: FadeTransition(
+                                opacity: a1, // 0.0'dan 1.0'a belirme
+                                child: child, // AlertDialog widget'ımız
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text("Evet"),
+                            );
+                          },
+
+                          // *** ANIMASYON EFEKTİ SONU ***
+                          pageBuilder: (context, animation, secondaryAnimation) {
+                            // AlertDialog içeriği aynı kalıyor
+                            return AlertDialog(
+                              backgroundColor: darkBlue,
+                              title: const Text(
+                                "Randevuyu Sil",
+                                style: TextStyle(color: Colors.white),
                               ),
-                            ],
-                          ),
+                              content: const Text(
+                                "Bu randevuyu silmek istediğinize emin misiniz?",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text(
+                                    "Hayır",
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                    ), // Hafifçe soluk
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text(
+                                    "Evet",
+                                    // Silme eylemini vurgulamak için Kırmızı renk
+                                    style: TextStyle(color: Colors.redAccent),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         );
+
                         if (confirm == true) {
                           await dbService.deleteAppointment(randevuBilgi['id']);
                           _loadAppointments();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Randevu silindi")),
+                              const SnackBar(
+                                content: Text("Randevu silindi"),
+                                backgroundColor: darkBlue,
+                              ),
                             );
                           }
                         }

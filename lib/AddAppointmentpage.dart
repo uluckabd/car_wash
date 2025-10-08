@@ -101,8 +101,15 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         }
 
         return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
           height: 275,
-          color: Colors.white,
+
           child: Column(
             children: [
               SizedBox(
@@ -267,8 +274,15 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             if (initialMinuteIndex == -1) initialMinuteIndex = 0;
 
             return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
               height: 250,
-              color: Colors.white,
+
               child: Column(
                 children: [
                   SizedBox(
@@ -513,6 +527,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               content: Text(
                                 'Lütfen başlangıç ve bitiş saatini seçin',
                               ),
+                              backgroundColor: darkBlue,
                             ),
                           );
                           return;
@@ -572,6 +587,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                 content: Text(
                                   'Bu saatler arasında başka bir randevu var.',
                                 ),
+                                backgroundColor: darkBlue,
                               ),
                             );
                             return;
