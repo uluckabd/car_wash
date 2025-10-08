@@ -418,11 +418,64 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () async {
                         final yeniRandevu = await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const AddAppointmentScreen(),
+                          // *** YENİ ZOOM (SCALE) ANIMASYONU KODU ***
+                          PageRouteBuilder(
+                            transitionDuration: const Duration(
+                              milliseconds: 500,
+                            ),
+                            reverseTransitionDuration: const Duration(
+                              milliseconds: 400,
+                            ),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const AddAppointmentScreen(),
+                            transitionsBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
+                                  // Sayfanın yavaşça belirmesi (FadeTransition)
+                                  final fadeAnimation =
+                                      Tween<double>(
+                                        begin: 0.0,
+                                        end: 1.0,
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve:
+                                              Curves.easeOut, // Yumuşak belirme
+                                        ),
+                                      );
+
+                                  // Sayfanın küçülüp büyümesi (ScaleTransition)
+                                  final scaleAnimation =
+                                      Tween<double>(
+                                        begin: 0.8,
+                                        end: 1.0,
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves
+                                              .easeOutBack, // Hafif yaylanmalı bir zoom efekti
+                                        ),
+                                      );
+
+                                  return FadeTransition(
+                                    opacity: fadeAnimation,
+                                    child: ScaleTransition(
+                                      scale: scaleAnimation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
                           ),
+                          // *** ZOOM (SCALE) ANIMASYONU KODU SONU ***
                         );
+
                         if (yeniRandevu != null) {
+                          // Veri kaydetme mantığı
                           await dbService.addAppointment(yeniRandevu);
                           _loadAppointments();
                         }

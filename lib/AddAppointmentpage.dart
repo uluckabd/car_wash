@@ -1,4 +1,5 @@
 import 'package:car_wash/app_ready_package.dart';
+import 'package:car_wash/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -143,20 +144,16 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     bool readOnly = false,
     Function()? onTap,
   }) {
+    // Koyu temaya uygun iç dolgu rengi (hafif şeffaf)
+    const Color textFieldFillColor = Color.fromRGBO(255, 255, 255, 0.1);
+    // Normal durumda kenarlık rengi (hafif şeffaf)
+    const Color defaultBorderColor = Color.fromRGBO(255, 191, 0, 0.8);
+    // Odaklanıldığında istediğin canlı mavi renk (Focused Color)
+    const Color focusedBorderColor = Color(0xFF64B5F6);
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.25),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      // Form alanları arasındaki dikey boşluk
+      margin: const EdgeInsets.symmetric(vertical: 13),
       child: TextField(
         readOnly: readOnly,
         onTap: onTap,
@@ -164,13 +161,34 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         maxLines: maxLines,
+        // Koyu arka planda okunaklı olması için metin rengi beyaz
+        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.blueGrey),
-          border: InputBorder.none,
+          labelStyle: const TextStyle(color: Colors.white70),
+          filled: true,
+          fillColor: textFieldFillColor, // Şeffaf iç dolgu
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 18,
+          ),
+
+          // NORMAL GÖRÜNÜM: Hafif şeffaf ve yuvarlak kenarlık
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: defaultBorderColor, width: 1.5),
+          ),
+
+          // **ODAKLANILMIŞ GÖRÜNÜM:** Canlı Mavi ve Kalın Kenarlık (Focus)
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: focusedBorderColor, width: 2.0),
+          ),
+
+          // Varsayılan kenarlık (hata vb.)
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: defaultBorderColor),
           ),
         ),
       ),
@@ -339,117 +357,150 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         : _timeSlots.where((t) => t.compareTo(_startTime!) >= 0).toList();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      // Sayfa içeriğinin (gradient'in) alt navigasyon çubuğunun arkasına kadar uzamasını sağlar.
+      extendBody: true,
+      // darkBlue değişkenini Color(0xFF1B2A38) olarak varsaydık
+      backgroundColor: const Color(0xFF1B2A38),
+
       appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: const Color(0xFF1B2A38),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           widget.appointmentData == null ? 'Yeni Randevu' : 'Randevu Güncelle',
-          style: AppTextStyles.title,
+          style: const TextStyle(color: Colors.white),
         ),
-        flexibleSpace: Appcolor(),
       ),
+
+      // body'i Container ile sarıp gradient arka plan ekliyoruz
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            // Koyu mavinin tonları
             colors: [
-              Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
-              Color(0xFF1F3249), // Alt kısım (Biraz daha açık Lacivert/Mavi)
+              Color(0xFF1B2A38), // darkBlue
+              Color(0xFF1F3249), // Koyu alt ton
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              buildTextField(label: 'İsim Soyisim', controller: isimController),
-              buildTextField(
-                label: 'Telefon',
-                keyboardType: TextInputType.phone,
-                controller: telefonController,
-                inputFormatters: [phoneMask],
-              ),
-              buildTextField(label: 'Araç Bilgisi', controller: aracController),
-              buildTextField(
-                label: 'Tarih',
-                controller: dateController,
-                readOnly: true,
-                onTap: () => _selectDate(context),
-              ),
-              Row(
+
+        // Tüm formu ListView içine alarak kaydırma ve dinamik boşluk yönetimi sağlıyoruz
+        child: ListView(
+          primary: true,
+          // Yatay padding'i koruyup, dikeyde dinamik alt boşluk sağlıyoruz
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16, // Üst boşluk
+            16,
+            // En önemli kısım: Alt sistem çubuğu (navigasyon) boşluğunu ekliyoruz.
+            MediaQuery.of(context).viewPadding.bottom + 16,
+          ),
+          children: [
+            // Form alanları (buildTextField metodu eski haliyle kalıyor)
+            buildTextField(label: 'İsim Soyisim', controller: isimController),
+            buildTextField(
+              label: 'Telefon',
+              keyboardType: TextInputType.phone,
+              controller: telefonController,
+              inputFormatters: [phoneMask],
+            ),
+            buildTextField(label: 'Araç Bilgisi', controller: aracController),
+            buildTextField(
+              label: 'Tarih',
+              controller: dateController,
+              readOnly: true,
+              onTap: () => _selectDate(context),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: buildTextField(
+                    label: "Başlangıç Saati",
+                    readOnly: true,
+                    controller: TextEditingController(text: _startTime ?? ""),
+                    onTap: () async {
+                      // Veri mantığı olduğu gibi kalıyor
+                      final result = await _showTimePicker(
+                        context,
+                        initial: _startTime,
+                        minTime: '08:00',
+                      );
+                      if (result != null) {
+                        setState(() {
+                          _startTime = result;
+                          if (_endTime != null &&
+                              _endTime!.compareTo(_startTime!) < 0) {
+                            _endTime = null;
+                          }
+                        });
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: buildTextField(
+                    label: "Bitiş Saati",
+                    readOnly: true,
+                    controller: TextEditingController(text: _endTime ?? ""),
+                    onTap: () async {
+                      // Veri mantığı olduğu gibi kalıyor
+                      final result = await _showTimePicker(
+                        context,
+                        initial: _endTime,
+                        minTime: _startTime,
+                      );
+                      if (result != null) {
+                        setState(() {
+                          _endTime = result;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            buildTextField(
+              label: 'Ücret',
+              keyboardType: TextInputType.number,
+              controller: ucretController,
+            ),
+            buildTextField(
+              label: 'Not',
+              maxLines: 3,
+              controller: notController,
+            ),
+
+            // Butonlar
+            Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
-                    child: buildTextField(
-                      label: "Başlangıç Saati",
-                      readOnly: true,
-                      controller: TextEditingController(text: _startTime ?? ""),
-                      onTap: () async {
-                        final result = await _showTimePicker(
-                          context,
-                          initial: _startTime,
-                        );
-                        if (result != null) {
-                          setState(() {
-                            _startTime = result;
-                            if (_endTime != null &&
-                                _endTime!.compareTo(_startTime!) < 0) {
-                              _endTime = null;
-                            }
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: buildTextField(
-                      label: "Bitiş Saati",
-                      readOnly: true,
-                      controller: TextEditingController(text: _endTime ?? ""),
-                      onTap: () async {
-                        final result = await _showTimePicker(
-                          context,
-                          initial: _endTime,
-                          minTime: _startTime, // <-- BURASI ÖNEMLİ
-                        );
-                        if (result != null) {
-                          setState(() {
-                            _endTime = result;
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-
-              buildTextField(
-                label: 'Ücret',
-                keyboardType: TextInputType.number,
-                controller: ucretController,
-              ),
-              buildTextField(
-                label: 'Not',
-                maxLines: 3,
-                controller: notController,
-              ),
-
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
+                    child: ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        // *** ARKA PLAN ŞEFFAF YAPILIYOR (Vazgeç için uygun) ***
+                        backgroundColor: Colors.transparent,
+                        // Ön plan rengi beyaz kalıyor
+                        foregroundColor: Colors.white,
+                        elevation: 0, // Yüksekliği sıfırlıyoruz
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 14,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
+                          // **HAFİF BEYAZ BİR ÇERÇEVE EKLENİYOR**
+                          side: const BorderSide(
+                            color: Color.fromRGBO(255, 255, 255, 0.5),
+                            width: 1.5,
+                          ),
                         ),
                       ),
                       child: const Text(
@@ -457,8 +508,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
-                    ElevatedButton(
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
                       onPressed: () async {
+                        // Kaydetme mantığı olduğu gibi kalıyor
                         if (_startTime == null || _endTime == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -535,7 +590,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           "isimSoyisim": isimController.text,
                           "telefon": telefonController.text,
                           "arac": aracController.text,
-                          "tarih": dateController.text, // DD/MM/YYYY formatında
+                          "tarih": dateController.text,
                           "baslangic": _startTime,
                           "bitis": _endTime,
                           "ucret": ucretController.text,
@@ -546,7 +601,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         Navigator.pop(context, appointment);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        // Kaydet butonu için canlı mavi (önceki odak rengi) kullandık
+                        backgroundColor: const Color.fromRGBO(255, 191, 0, 1.0),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 14,
@@ -557,14 +613,17 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       ),
                       child: const Text(
                         'Kaydet',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(
+                          color: Color(0xFF1B2A38),
+                          fontSize: 16,
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
