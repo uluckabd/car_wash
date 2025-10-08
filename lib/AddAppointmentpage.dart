@@ -485,26 +485,19 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        // *** ARKA PLAN ŞEFFAF YAPILIYOR (Vazgeç için uygun) ***
-                        backgroundColor: Colors.transparent,
-                        // Ön plan rengi beyaz kalıyor
-                        foregroundColor: Colors.white,
-                        elevation: 0, // Yüksekliği sıfırlıyoruz
+                        // Vazgeç butonu rengini temaya uyumlu yaptık
+                        backgroundColor: Colors.blueGrey.shade700,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
                           vertical: 14,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          // **HAFİF BEYAZ BİR ÇERÇEVE EKLENİYOR**
-                          side: const BorderSide(
-                            color: Color.fromRGBO(255, 255, 255, 0.5),
-                            width: 1.5,
-                          ),
                         ),
                       ),
                       child: const Text(
                         'Vazgeç',
+                        // darkBlue'ya tezat renk
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
