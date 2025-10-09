@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 
 // Uygulama genelinde kullanılacak renkleri ve metinleri sabitler olarak tanımlıyoruz.
-const Color primaryColor = Color.fromRGBO(255, 1, 1, 1);
+const Color primaryColor = Colors.red;
 const Color secondaryColor = Color(0xFF90CAF9);
 const Color darkBlue = Color(0xFF1B2A38);
 const List<String> weekdays = [
@@ -251,6 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
   ) {
     final bool doluMu = randevuBilgi.isNotEmpty;
     // Renk ve tema ayarları
+    // primaryColor ve secondaryColor'ın tanımlı olduğunu varsayıyoruz
     final Color itemColor = doluMu ? primaryColor : secondaryColor;
     final Color iconColor = doluMu
         ? Colors.red.shade700
@@ -259,14 +260,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Card(
-        color: Colors.white,
+        color: Colors.grey.shade300,
         // Card ile Listeleme öğesine hafif bir gölge ve köşe yuvarlaklığı ekliyoruz.
         elevation: doluMu ? 4 : 1, // Dolu randevulara daha belirgin bir gölge
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: doluMu ? itemColor.withOpacity(0.5) : Colors.grey.shade300,
-            width: 1,
+            // BOŞ (doluMu == false) ise secondaryColor (yani istenen accentColor) kullanıldı.
+            color: doluMu ? itemColor.withOpacity(0.5) : secondaryColor,
+            width: 1.8,
           ),
         ),
         child: ListTile(
@@ -758,21 +760,19 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        child: BottomNavigationBar(
-          backgroundColor: darkBlue,
-          currentIndex: selectedIndex,
-          onTap: (index) {
-            setState(() => selectedIndex = index);
-          },
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white70,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: darkBlue,
+        currentIndex: selectedIndex,
+        onTap: (index) {
+          setState(() => selectedIndex = index);
+        },
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
 
-            BottomNavigationBarItem(icon: Icon(Icons.archive), label: 'Arşiv'),
-          ],
-        ),
+          BottomNavigationBarItem(icon: Icon(Icons.archive), label: 'Arşiv'),
+        ],
       ),
       //floatingActionButton: FloatingActionButton(
       //  onPressed: () async {
