@@ -354,7 +354,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: const Icon(
                         Icons.edit,
                         color: Colors.blue,
-                        size: 24,
+                        size: 20,
                       ),
                       onPressed: () async {
                         // Randevu düzenleme sayfasına PageRouteBuilder ile Zoom animasyonu uyguluyoruz.
@@ -439,7 +439,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: const Icon(
                         Icons.delete,
                         color: primaryColor,
-                        size: 24,
+                        size: 20,
                       ),
                       onPressed: () async {
                         final confirm = await showGeneralDialog<bool>(
@@ -603,44 +603,58 @@ class _MyHomePageState extends State<MyHomePage> {
 
         // 1. BAŞLIK (TITLE): selectedIndex'e göre başlık değişir
         title: selectedIndex == 0
-            ? Row(
-                // Metinleri yan yana ve başlık alanının en soluna hizala
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline:
-                    TextBaseline.alphabetic, // Metin hizalaması için gerekli
+            ? Column(
+                // Row'dan Column'a çevrildi
+                crossAxisAlignment: CrossAxisAlignment.start, // Sola hizalama
+                mainAxisSize: MainAxisSize.min, // Alanı minimumda tut
                 children: [
                   // ANA SAYFA METNİ (Daha büyük ve kalın)
-                  Text("Ana Sayfa"),
+                  Text(
+                    "Ana Sayfa",
+                    style: Theme.of(context).appBarTheme.titleTextStyle,
+                  ),
 
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12),
-                    child: Text(
-                      getFormattedDate(
-                        baseDate,
-                      ), // baseDate ve getFormattedDate gerekli
-                      style: const TextStyle(
-                        color: Colors.white, // Biraz daha soluk
-                        fontSize: 16, // Daha küçük font boyutu
-                        fontWeight: FontWeight.normal,
-                      ),
+                  // TARİH BİLGİSİ (Hemen altına)
+                  Text(
+                    getFormattedDate(baseDate),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
                     ),
                   ),
                 ],
               )
             // selectedIndex 1 ise "Arşiv" başlığını göster
             : selectedIndex == 1
-            ? Text("Arşiv", style: AppTextStyles.title)
+            // AppReadyPackage içindeki AppTextStyles'a erişim sorunlu olabilir,
+            // ThemeData'dan alalım:
+            ? Text("Arşiv", style: Theme.of(context).appBarTheme.titleTextStyle)
             // Başka bir index ise varsayılan başlık
-            : Text("Başlık", style: AppTextStyles.title),
+            : Text(
+                "Başlık",
+                style: Theme.of(context).appBarTheme.titleTextStyle,
+              ),
 
         // 2. EYLEMLER (ACTIONS): selectedIndex'e göre ikonlar değişir (Değişmedi)
         actions: selectedIndex == 0
             ? [
                 // Index 0 (Ana Sayfa) için Takvim İkonu
-                IconButton(
-                  icon: const Icon(Icons.calendar_month_outlined, size: 24),
-                  onPressed: () => _selectDate(context),
+                Padding(
+                  padding: const EdgeInsets.only(left: 0, top: 8),
+                  child: Column(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Ortalamak için
+                    crossAxisAlignment: CrossAxisAlignment.end, // Sağa hizalama
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
+                        onPressed: () => _selectDate(context),
+                        icon: Icon(Icons.calendar_month_outlined),
+                      ),
+                    ],
+                  ),
                 ),
               ]
             : selectedIndex == 1
@@ -651,6 +665,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () {
                     showSearch(
                       context: context,
+                      // AppointmentSearch sınıfının tanımı burada mevcut değil,
+                      // ancak işlevsellik bozulmasın diye tutuyorum.
                       delegate: AppointmentSearch(randevular),
                     );
                   },
@@ -775,19 +791,19 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       //floatingActionButton: FloatingActionButton(
-      //  onPressed: () async {
-      //   final yeniRandevu = await Navigator.push(
-      //      context,
-      //      MaterialPageRoute(
-      //        builder: (context) => const AddAppointmentScreen(),
-      //      ),
-      //    );
-      //    if (yeniRandevu != null) {
-      //      await dbService.addAppointment(yeniRandevu);
-      //      _loadAppointments();
-      //    }
-      //  },
-      //  child: const Icon(Icons.add),
+      //  onPressed: () async {
+      //   final yeniRandevu = await Navigator.push(
+      //      context,
+      //      MaterialPageRoute(
+      //        builder: (context) => const AddAppointmentScreen(),
+      //      ),
+      //    );
+      //    if (yeniRandevu != null) {
+      //      await dbService.addAppointment(yeniRandevu);
+      //      _loadAppointments();
+      //    }
+      //  },
+      //  child: const Icon(Icons.add),
       // ),
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
