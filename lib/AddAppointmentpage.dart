@@ -378,7 +378,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: const Color(0xFF1B2A38),
+        backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           widget.appointmentData == null ? 'Yeni Randevu' : 'Randevu Güncelle',
@@ -390,27 +390,26 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF1B2A38), // darkBlue
-              Color(0xFF1F3249), // Koyu alt ton
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            // Arka plan fotoğrafınızın dosya adı: arka_plan.jpg
+            image: AssetImage(
+              'assets/image/backgroundphoto.png',
+            ), // 'assets/images/' klasöründe olduğunu varsaydım
+            fit: BoxFit.cover, // Tüm alanı kaplaması için
           ),
         ),
 
         // Tüm formu ListView içine alarak kaydırma ve dinamik boşluk yönetimi sağlıyoruz
         child: ListView(
           primary: true,
-          // Yatay padding'i koruyup, dikeyde dinamik alt boşluk sağlıyoruz
           padding: EdgeInsets.fromLTRB(
             16,
-            16, // Üst boşluk
+            MediaQuery.of(context).padding.top + 58,
             16,
-            // En önemli kısım: Alt sistem çubuğu (navigasyon) boşluğunu ekliyoruz.
-            MediaQuery.of(context).viewPadding.bottom + 16,
+            MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(context).padding.bottom +
+                16,
           ),
           children: [
             // Form alanları (buildTextField metodu eski haliyle kalıyor)

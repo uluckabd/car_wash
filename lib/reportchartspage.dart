@@ -41,6 +41,7 @@ class _MonthCardState extends State<MonthCard> {
     widget.onTap();
 
     // Sayfa geçiş animasyonu başlasın diye kısa bir süre bekle
+    // Sayfa geçiş animasyonu başlasın diye kısa bir süre bekleten yapı
     await Future.delayed(const Duration(milliseconds: 100));
 
     // Yüklemeyi kapat
