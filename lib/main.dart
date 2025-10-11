@@ -52,7 +52,6 @@ class MyApp extends StatelessWidget {
             color: Colors.white,
             fontSize: 25,
             fontWeight: FontWeight.bold,
-
             wordSpacing: 2,
             letterSpacing: 1,
           ),
@@ -267,8 +266,8 @@ class _MyHomePageState extends State<MyHomePage> {
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             // BOŞ (doluMu == false) ise secondaryColor (yani istenen accentColor) kullanıldı.
-            color: doluMu ? itemColor.withOpacity(0.5) : secondaryColor,
-            width: 1.8,
+            color: doluMu ? itemColor.withOpacity(0.9) : secondaryColor,
+            width: 2.0,
           ),
         ),
         child: ListTile(
@@ -280,6 +279,7 @@ class _MyHomePageState extends State<MyHomePage> {
               _makePhoneCall(rawPhoneNumber);
             } else {
               // Boş randevu için işlem (örn: Ekleme ekranına git)
+              // FAB aktif olduğu için bu kısımda bir aksiyon bırakılmadı.
             }
           },
 
@@ -338,7 +338,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 )
               : Text(
-                  "Boş ",
+                  // Bu slot boşsa
+                  "Boş",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.green.shade600,
                   ),
@@ -517,81 +518,54 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ],
                 )
-              : Column(
-                  children: [
-                    IconButton(
-                      onPressed: () async {
-                        final yeniRandevu = await Navigator.push(
-                          context,
-                          // *** YENİ ZOOM (SCALE) ANIMASYONU KODU ***
-                          PageRouteBuilder(
-                            transitionDuration: const Duration(
-                              milliseconds: 500,
-                            ),
-                            reverseTransitionDuration: const Duration(
-                              milliseconds: 400,
-                            ),
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    const AddAppointmentScreen(),
-                            transitionsBuilder:
-                                (
-                                  context,
-                                  animation,
-                                  secondaryAnimation,
-                                  child,
-                                ) {
-                                  // Sayfanın yavaşça belirmesi (FadeTransition)
-                                  final fadeAnimation =
-                                      Tween<double>(
-                                        begin: 0.0,
-                                        end: 1.0,
-                                      ).animate(
-                                        CurvedAnimation(
-                                          parent: animation,
-                                          curve:
-                                              Curves.easeOut, // Yumuşak belirme
-                                        ),
-                                      );
-
-                                  // Sayfanın küçülüp büyümesi (ScaleTransition)
-                                  final scaleAnimation =
-                                      Tween<double>(
-                                        begin: 0.8,
-                                        end: 1.0,
-                                      ).animate(
-                                        CurvedAnimation(
-                                          parent: animation,
-                                          curve: Curves
-                                              .easeOutBack, // Hafif yaylanmalı bir zoom efekti
-                                        ),
-                                      );
-
-                                  return FadeTransition(
-                                    opacity: fadeAnimation,
-                                    child: ScaleTransition(
-                                      scale: scaleAnimation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                          ),
-                          // *** ZOOM (SCALE) ANIMASYONU KODU SONU ***
-                        );
-
-                        if (yeniRandevu != null) {
-                          // Veri kaydetme mantığı
-                          await dbService.addAppointment(yeniRandevu);
-                          _loadAppointments();
-                        }
-                      },
-                      icon: const Icon(Icons.add_circle_sharp),
-                    ),
-                  ],
-                ), // Boşsa ekleme ikonu
+              // Boş randevu için artık ekleme ikonu yok (istenildiği gibi silindi)
+              : null,
         ),
       ),
     );
+  }
+
+  // Yeni Randevu Ekleme İşlevi: FAB'a atanacak fonksiyon
+  Future<void> _addAppointment() async {
+    final yeniRandevu = await Navigator.push(
+      context,
+      // *** ZOOM (SCALE) ANIMASYONU KODU ***
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 500),
+        reverseTransitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const AddAppointmentScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // Sayfanın yavaşça belirmesi (FadeTransition)
+          final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut, // Yumuşak belirme
+            ),
+          );
+
+          // Sayfanın küçülüp büyümesi (ScaleTransition)
+          final scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack, // Hafif yaylanmalı bir zoom efekti
+            ),
+          );
+
+          return FadeTransition(
+            opacity: fadeAnimation,
+            child: ScaleTransition(scale: scaleAnimation, child: child),
+          );
+        },
+      ),
+      // *** ZOOM (SCALE) ANIMASYONU KODU SONU ***
+    );
+
+    if (yeniRandevu != null) {
+      // Veri kaydetme mantığı
+      await dbService.addAppointment(yeniRandevu);
+      _loadAppointments();
+    }
   }
 
   @override
@@ -627,8 +601,6 @@ class _MyHomePageState extends State<MyHomePage> {
               )
             // selectedIndex 1 ise "Arşiv" başlığını göster
             : selectedIndex == 1
-            // AppReadyPackage içindeki AppTextStyles'a erişim sorunlu olabilir,
-            // ThemeData'dan alalım:
             ? Text("Arşiv", style: Theme.of(context).appBarTheme.titleTextStyle)
             // Başka bir index ise varsayılan başlık
             : Text(
@@ -786,26 +758,20 @@ class _MyHomePageState extends State<MyHomePage> {
         unselectedItemColor: Colors.white70,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
-
           BottomNavigationBarItem(icon: Icon(Icons.archive), label: 'Arşiv'),
         ],
       ),
-      //floatingActionButton: FloatingActionButton(
-      //  onPressed: () async {
-      //   final yeniRandevu = await Navigator.push(
-      //      context,
-      //      MaterialPageRoute(
-      //        builder: (context) => const AddAppointmentScreen(),
-      //      ),
-      //    );
-      //    if (yeniRandevu != null) {
-      //      await dbService.addAppointment(yeniRandevu);
-      //      _loadAppointments();
-      //    }
-      //  },
-      //  child: const Icon(Icons.add),
-      // ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // İstenildiği gibi FloatingActionButton aktif edildi ve animasyon eklendi.
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addAppointment, // Yeni fonksiyonu çağır
+        backgroundColor: const Color.fromRGBO(255, 191, 0, 1.0), // Vurgulu renk
+        child: const Icon(Icons.add, color: darkBlue),
+      ),
+      // FAB'ın navigasyon bar'ın ortasına yerleştirilmesi.
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
+
+// Not: `AppointmentSearch` ve `DatabaseService` sınıflarının tanımı bu dosyada mevcut değil, ancak
+// import edildikleri varsayılarak kod akışı korunmuştur.

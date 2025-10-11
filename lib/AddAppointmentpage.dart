@@ -383,6 +383,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       backgroundColor: const Color(0xFF1B2A38),
 
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),

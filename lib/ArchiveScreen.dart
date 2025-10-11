@@ -377,7 +377,7 @@ class AppointmentSearch extends SearchDelegate<Map<String, dynamic>> {
       IconButton(
         icon: const Icon(Icons.clear),
         onPressed: () {
-          query = '';
+          close(context, {});
         },
       ),
     ];
