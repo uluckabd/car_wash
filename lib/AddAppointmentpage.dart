@@ -125,7 +125,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 ),
               ),
               CupertinoButton(
-                child: const Text('Tamam'),
+                child: const Text(
+                  'Tamam',
+                  style: TextStyle(color: darkBlue, fontSize: 20),
+                ),
                 onPressed: () => Navigator.of(context).pop(tempPickedDate),
               ),
             ],
@@ -342,7 +345,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     ),
                   ),
                   CupertinoButton(
-                    child: const Text("Tamam"),
+                    child: const Text(
+                      "Tamam",
+                      style: TextStyle(color: darkBlue, fontSize: 20),
+                    ),
                     onPressed: () {
                       final formatted =
                           '${tempSelectedHour.toString().padLeft(2, '0')}:${tempSelectedMinute.toString().padLeft(2, '0')}';
@@ -391,12 +397,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
-          image: DecorationImage(
-            // Arka plan fotoğrafınızın dosya adı: arka_plan.jpg
-            image: AssetImage(
-              'assets/image/backgroundphoto.png',
-            ), // 'assets/images/' klasöründe olduğunu varsaydım
-            fit: BoxFit.cover, // Tüm alanı kaplaması için
+          gradient: LinearGradient(
+            // Koyu mavinin tonları
+            colors: [
+              Color(0xFF1B2A38), // Üst kısım (Daha Koyu Lacivert)
+              Color(0xFF1F3249), // Alt kısım (Biraz daha açık Lacivert/Mavi)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
 
@@ -405,7 +413,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           primary: true,
           padding: EdgeInsets.fromLTRB(
             16,
-            MediaQuery.of(context).padding.top + 58,
+            16,
             16,
             MediaQuery.of(context).viewInsets.bottom +
                 MediaQuery.of(context).padding.bottom +
