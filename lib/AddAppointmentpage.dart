@@ -7,6 +7,9 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:car_wash/database_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+// darkBlue değişkeninin Color(0xFF1B2A38) olduğunu varsayıyoruz.
+const darkBlue = Color(0xFF1B2A38);
+
 class AddAppointmentScreen extends StatefulWidget {
   final Map<String, dynamic>? appointmentData;
 
@@ -29,8 +32,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   //Belirli bir zaman aralığı içinde, yarım saatlik dilimler halinde sıralı saat listesi oluşturmaya yarar.
   final List<String> _timeSlots = List.generate(21, (index) {
-    final hour = 8 + (index ~/ 2); // saat
-    final minute = (index % 2) * 30; // dakika
+    final hour = 8 + (index ~/ 2); // saat (08:00'dan başlar)
+    final minute = (index % 2) * 30; // dakika (00 veya 30)
     return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   });
 
@@ -101,19 +104,45 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         }
 
         return Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
           ),
-          height: 275,
-
+          // Yüksekliği Tamam butonu için yer açacak şekilde küçülttük
+          height: 250,
           child: Column(
             children: [
-              SizedBox(
-                height: 200,
+              // YENİ TAMAM BUTONU KONUMU (Sağ Üst Köşe)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end, // Sağa yasla
+                children: [
+                  CupertinoButton(
+                    // Padding'i daha kompakt bir görünüm için ayarladık
+                    padding: const EdgeInsets.only(
+                      right: 15.0,
+                      top: 4.0,
+                      bottom: 4.0,
+                      left: 8.0,
+                    ),
+                    child: const Text(
+                      'Bitti',
+                      // Font boyutunu saat seçici ile uyumlu yaptık
+                      style: TextStyle(
+                        color: darkBlue,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(tempPickedDate),
+                  ),
+                ],
+              ),
+
+              // TARİH ÇARKI (Kalan alanı doldurması için Expanded ile sardık)
+              Expanded(
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date,
                   initialDateTime: tempPickedDate,
@@ -123,13 +152,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     tempPickedDate = newDate;
                   },
                 ),
-              ),
-              CupertinoButton(
-                child: const Text(
-                  'Tamam',
-                  style: TextStyle(color: darkBlue, fontSize: 20),
-                ),
-                onPressed: () => Navigator.of(context).pop(tempPickedDate),
               ),
             ],
           ),
@@ -205,6 +227,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>> DÜZELTİLMİŞ ZAMAN SEÇİCİ FONKSİYONU <<<<<<<<<<<<<<<<<<<<<<<<<<<
   Future<String?> _showTimePicker(
     BuildContext context, {
     String? initial,
@@ -213,11 +236,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     final List<int> allHours = List.generate(11, (i) => 8 + i); // 08 - 18
     final List<int> minutes = [0, 30]; // 00, 30
 
-    // State'i yerel olarak yönetmek için final yerine geçici değişken
+    // State'i yerel olarak yönetmek için geçici değişkenler
     int tempSelectedHour = 8;
     int tempSelectedMinute = 0;
-
-    // ... (Initial value set ve MinTime kontrol kısmı aynı kalabilir) ...
 
     int minHour = 8;
     int minMinute = 0;
@@ -229,7 +250,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       }
     }
 
-    // Initial value set (selectedHour ve selectedMinute değerleri minTime kontrolü için önemli)
+    // Initial value set
     if (initial != null) {
       final parts = initial.split(':');
       if (parts.length == 2) {
@@ -241,73 +262,104 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return await showCupertinoModalPopup<String>(
       context: context,
       builder: (BuildContext innerContext) {
-        // innerContext kullanımı önemli
-
-        // **StatefulBuilder kullanarak iç durumu yönetelim**
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             // 1. Filtrelenmiş saat listesi
+            // minTime'dan büyük saatleri veya minTime'ın saat kısmını alır.
             final List<int> filteredHours = allHours
                 .where((h) => h > minHour || (h == minHour && minMinute == 0))
                 .toList();
 
-            // 2. Filtreleme sonrası en küçük saatten daha küçük bir saat seçilmişse, onu ayarla
+            // 2. Eğer başlangıç saati kısıtlamadan önce seçilmişse ve kısıtlamaya aykırıysa, en küçük geçerli saate ayarla
             if (!filteredHours.contains(tempSelectedHour)) {
-              // Eğer başlangıç saati minTime'dan küçükse,
-              // otomatik olarak izin verilen en küçük saate geç
               tempSelectedHour = filteredHours.first;
             }
 
-            // 3. Başlangıç indeksi, filtrelenmiş listedeki pozisyonuna göre ayarlanmalı
+            // 3. Başlangıç indeksi
             int initialHourIndex = filteredHours.indexOf(tempSelectedHour);
             if (initialHourIndex == -1) initialHourIndex = 0;
 
-            // 4. Dakika listesi de saat değişimine göre filtrelenecek
+            // 4. Dakika listesi
             final List<int> filteredMinutes = minutes.where((m) {
               if (tempSelectedHour == minHour) {
+                // Eğer seçilen saat, minimum saate eşitse, minimum dakikadan büyük veya eşit dakikaları göster.
                 return m >= minMinute;
               }
+              // Aksi takdirde (minimum saatten büyükse), tüm dakikaları göster.
               return true;
             }).toList();
 
-            // 5. Dakika başlangıç indeksi, filtrelenmiş listedeki pozisyonuna göre ayarlanmalı
+            // 5. Dakika başlangıç indeksi
             int initialMinuteIndex = filteredMinutes.indexOf(
               tempSelectedMinute,
             );
             if (initialMinuteIndex == -1) initialMinuteIndex = 0;
+            if (initialMinuteIndex < 0) initialMinuteIndex = 0;
+            // Not: Bitiş saatini seçerken başlangıç saati ile aynı saati ve dakikayı seçtiğinde initialMinuteIndex'in -1 olmasını önlemek için,
+            // başlangıç saatini geçtikten sonra minMinute = 0 yapılır. Ancak mevcut filtreleme doğru.
 
             return Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20),
                   topRight: Radius.circular(20),
                 ),
               ),
+              // Yüksekliği Tamam butonu için yer açacak şekilde biraz artırıyoruz
               height: 250,
 
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 180,
+                  // YENİ BAŞLIK VE TAMAM BUTONU
+                  Padding(
+                    // Sağ üstte boşluk bırakmak için
+                    padding: const EdgeInsets.only(right: 8.0, top: 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end, // Sağa yasla
+                      children: [
+                        CupertinoButton(
+                          child: const Text(
+                            "Bitti",
+                            style: TextStyle(color: darkBlue, fontSize: 20),
+                          ),
+                          onPressed: () {
+                            final formatted =
+                                '${tempSelectedHour.toString().padLeft(2, '0')}:${tempSelectedMinute.toString().padLeft(2, '0')}';
+                            Navigator.pop(context, formatted);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // SAAT VE DAKİKA ÇARKLARI
+                  Expanded(
+                    // Kalan alanı doldur
                     child: Row(
                       children: [
                         // SAAT ÇARKI
                         Expanded(
                           child: CupertinoPicker(
                             scrollController: FixedExtentScrollController(
-                              initialItem:
-                                  initialHourIndex, // BURASI DÜZELTİLDİ
+                              initialItem: initialHourIndex,
                             ),
                             itemExtent: 32,
                             onSelectedItemChanged: (index) {
                               setState(() {
-                                tempSelectedHour =
-                                    filteredHours[index]; // BURASI DÜZELTİLDİ
+                                tempSelectedHour = filteredHours[index];
+
                                 // Saat değişince dakika kontrolünü tekrar yap
                                 if (tempSelectedHour == minHour &&
                                     tempSelectedMinute < minMinute) {
+                                  // Eğer yeni seçilen saat, minimum saate eşitse
+                                  // ve seçili dakika hala minimum dakikadan küçükse,
+                                  // dakikayı minimum dakikaya sıfırla.
                                   tempSelectedMinute = minMinute;
+                                } else if (tempSelectedHour < minHour) {
+                                  // Bu kısım teorik olarak filteredHours sayesinde çalışmayacak,
+                                  // ancak güvenlik amaçlı burada bırakılabilir.
+                                  tempSelectedHour = minHour;
                                 }
                               });
                             },
@@ -324,13 +376,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         Expanded(
                           child: CupertinoPicker(
                             scrollController: FixedExtentScrollController(
-                              initialItem:
-                                  initialMinuteIndex, // BURASI DÜZELTİLDİ
+                              initialItem: initialMinuteIndex,
                             ),
                             itemExtent: 32,
                             onSelectedItemChanged: (index) {
-                              tempSelectedMinute =
-                                  filteredMinutes[index]; // BURASI DÜZELTİLDİ
+                              setState(() {
+                                // setState içinde çağırmalısın ki, saat çarkı değişince dakika çarkı da güncellensin.
+                                tempSelectedMinute = filteredMinutes[index];
+                              });
                             },
                             children: filteredMinutes
                                 .map(
@@ -344,17 +397,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       ],
                     ),
                   ),
-                  CupertinoButton(
-                    child: const Text(
-                      "Tamam",
-                      style: TextStyle(color: darkBlue, fontSize: 20),
-                    ),
-                    onPressed: () {
-                      final formatted =
-                          '${tempSelectedHour.toString().padLeft(2, '0')}:${tempSelectedMinute.toString().padLeft(2, '0')}';
-                      Navigator.pop(context, formatted);
-                    },
-                  ),
                 ],
               ),
             );
@@ -363,6 +405,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       },
     );
   }
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<< DÜZELTİLMİŞ ZAMAN SEÇİCİ FONKSİYONU SONU >>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   final phoneMask = MaskTextInputFormatter(
     // 0'dan sonra 3 hane (alan kodu), sonra 3, sonra 2, sonra 2 hane: 0(5XX) XXX XX XX
@@ -372,6 +415,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Bu kısım randevunun çakışma kontrolü için. Kodu olduğu gibi bıraktık.
     final filteredEndTimes = _startTime == null
         ? _timeSlots
         : _timeSlots.where((t) => t.compareTo(_startTime!) >= 0).toList();
@@ -379,8 +423,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return Scaffold(
       // Sayfa içeriğinin (gradient'in) alt navigasyon çubuğunun arkasına kadar uzamasını sağlar.
       extendBody: true,
-      // darkBlue değişkenini Color(0xFF1B2A38) olarak varsaydık
-      backgroundColor: const Color(0xFF1B2A38),
+      backgroundColor: darkBlue,
 
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -397,7 +440,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             // Koyu mavinin tonları
             colors: [
@@ -453,6 +496,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       if (result != null) {
                         setState(() {
                           _startTime = result;
+                          // Eğer bitiş saati başlangıç saatinden küçük kalırsa sıfırla
                           if (_endTime != null &&
                               _endTime!.compareTo(_startTime!) < 0) {
                             _endTime = null;
@@ -469,7 +513,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     readOnly: true,
                     controller: TextEditingController(text: _endTime ?? ""),
                     onTap: () async {
-                      // Veri mantığı olduğu gibi kalıyor
+                      // minTime: _startTime ile bitiş saatini başlangıç saatine kısıtlıyoruz
                       final result = await _showTimePicker(
                         context,
                         initial: _endTime,
@@ -565,6 +609,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           int.parse(_endTime!.split(':')[1]),
                         );
 
+                        // DatabaseService() kısmını kullanabilmen için DatabaseService sınıfının olması gerekir.
+                        // Eğer yoksa bu kısım hata verir.
                         final existingAppointments = await DatabaseService()
                             .getAppointmentsByDate(dateController.text);
 
@@ -618,7 +664,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         Navigator.pop(context, appointment);
                       },
                       style: ElevatedButton.styleFrom(
-                        // Kaydet butonu için canlı mavi (önceki odak rengi) kullandık
+                        // Kaydet butonu için canlı sarı/turuncu rengi kullandık
                         backgroundColor: const Color.fromRGBO(255, 191, 0, 1.0),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 30,
@@ -630,10 +676,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       ),
                       child: const Text(
                         'Kaydet',
-                        style: TextStyle(
-                          color: Color(0xFF1B2A38),
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: darkBlue, fontSize: 16),
                       ),
                     ),
                   ),
