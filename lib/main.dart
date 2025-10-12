@@ -112,6 +112,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate;
 
+    // Geçici olarak, onDateTimeChanged tetiklenmediğinde veya butona basılmadan önce kullanılacak bir tarih tutarız.
+    // baseDate'in tanımlı olduğunu varsayıyoruz.
+    DateTime tempPickedDate = baseDate;
+
     // showCupertinoModalPopup kullanarak alttan açılan bir menü oluşturma
     await showCupertinoModalPopup(
       context: context,
@@ -125,11 +129,33 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           height:
-              MediaQuery.of(context).size.height /
-              3, // Ekranın 1/3'ünü kaplasın
+              MediaQuery.of(context).size.height / 3, // Mevcut height'ı koruduk
           // Arka plan rengini belirle
           child: Column(
             children: [
+              // !!! SADECE BU KISIM DEĞİŞTİ: TAMAM BUTONUNU SAĞ ÜSTE TAŞIYORUZ !!!
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end, // Sağa yasla
+                children: [
+                  CupertinoButton(
+                    onPressed: () {
+                      // Buradaki mantık, önceki cevaptaki gibi düzeltildi.
+                      // Menüyü kapatırken seçilen son tarihi (tempPickedDate) atayıp kapatıyoruz.
+                      pickedDate = tempPickedDate;
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      'Tamam',
+                      style: TextStyle(
+                        color: darkBlue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // TARİH ÇARKI (Kalan alanı doldurması için Expanded ile sardık)
               Expanded(
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date, // Sadece tarih seçimi
@@ -137,20 +163,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   minimumDate: DateTime(2023),
                   maximumDate: DateTime(2030),
                   onDateTimeChanged: (DateTime newDate) {
-                    // Tarih değiştikçe pickedDate'i güncelle
-                    pickedDate = newDate;
+                    // Tarih değiştikçe tempPickedDate'i güncelle
+                    tempPickedDate = newDate;
                   },
-                ),
-              ),
-              // Tamam butonu
-              CupertinoButton(
-                onPressed: () => Navigator.pop(context), // Menüyü kapat
-                child: const Text(
-                  'Tamam',
-                  style: TextStyle(
-                    color: darkBlue,
-                    fontWeight: FontWeight.bold,
-                  ),
                 ),
               ),
             ],
