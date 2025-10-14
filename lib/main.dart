@@ -145,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Navigator.pop(context);
                     },
                     child: const Text(
-                      'Tamam',
+                      'Bitti',
                       style: TextStyle(
                         color: darkBlue,
                         fontWeight: FontWeight.bold,

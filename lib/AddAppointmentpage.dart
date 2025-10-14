@@ -548,9 +548,27 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Lütfen telefon numarasını giriniz.';
                   }
-                  if (phoneMask.getUnmaskedText().length != 10) {
-                    return 'Telefon numarası eksik.';
+
+                  // Gelen metinden (value), maske ve formatlama karakterlerini temizle
+                  // (parantez, boşluk, tire vb. tüm rakam olmayanları kaldır)
+                  final unmaskedValue = value.replaceAll(RegExp(r'\D'), '');
+
+                  if (unmaskedValue.length != 11) {
+                    // Artık doğrudan temizlenmiş metnin uzunluğunu kontrol ediyoruz
+                    return 'Telefon numarası eksik.  (Şu an ${unmaskedValue.length} hane)';
                   }
+
+                  // NOT: Eğer `phoneMask.getUnmaskedText()` metodu senin için kritikse,
+                  // (örneğin kaydederken bunu kullanıyorsan), o metodu çağırıp sonucunu
+                  // kontrol etmek yerine, bu RegEx yöntemiyle kontrol etmek validator için daha güvenlidir.
+
+                  // Orijinal maske kontrolünü SİLİYORUZ (ya da yoruma alıyoruz):
+                  /*
+    if (phoneMask.getUnmaskedText().length != 10) { 
+      return 'Telefon numarası eksik.'; 
+    }
+    */
+
                   return null;
                 },
               ),
