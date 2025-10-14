@@ -781,6 +781,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _addAppointment, // Yeni fonksiyonu çağır
         backgroundColor: const Color.fromRGBO(255, 191, 0, 1.0), // Vurgulu renk
         child: const Icon(Icons.add, color: darkBlue),
+        shape: CircleBorder(),
       ),
       // FAB'ın navigasyon bar'ın ortasına yerleştirilmesi.
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
