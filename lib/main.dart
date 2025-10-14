@@ -520,14 +520,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         if (confirm == true) {
                           await dbService.deleteAppointment(randevuBilgi['id']);
                           _loadAppointments();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Randevu silindi"),
-                                backgroundColor: darkBlue,
-                              ),
-                            );
-                          }
                         }
                       },
                     ),
