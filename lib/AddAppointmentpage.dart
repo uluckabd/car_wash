@@ -20,6 +20,9 @@ class AddAppointmentScreen extends StatefulWidget {
 }
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
+  // 1. ADIM: FormState'i yönetmek için GlobalKey oluşturuldu.
+  final _formKey = GlobalKey<FormState>();
+
   String? _startTime;
   String? _endTime;
 
@@ -48,7 +51,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     "Pazartesi",
     "Salı",
     "Çarşamba",
-    "Perşembe",
+    "Perşamba",
     "Cuma",
     "Cumartesi",
     "Pazar",
@@ -163,11 +166,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       setState(() {
         dateController.text =
             '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
+        // Tarih seçildikten sonra formu yeniden doğrulamak için (opsiyonel)
+        _formKey.currentState?.validate();
       });
     }
   }
 
-  Widget buildTextField({
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>> TEXTFORMFIELD WIDGET'I <<<<<<<<<<<<<<<<<<<<<<<<<<<
+  Widget buildTextFormField({
     required String label,
     TextInputType keyboardType = TextInputType.text,
     TextEditingController? controller,
@@ -175,6 +181,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     int maxLines = 1,
     bool readOnly = false,
     Function()? onTap,
+    required String? Function(String?)? validator,
+    String? hintText,
   }) {
     // Koyu temaya uygun iç dolgu rengi (hafif şeffaf)
     const Color textFieldFillColor = Color.fromRGBO(255, 255, 255, 0.1);
@@ -186,18 +194,25 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return Container(
       // Form alanları arasındaki dikey boşluk
       margin: const EdgeInsets.symmetric(vertical: 13),
-      child: TextField(
+      child: TextFormField(
+        autovalidateMode: AutovalidateMode.disabled,
+        // <<< TEXTFORMFIELD KULLANILDI
         readOnly: readOnly,
         onTap: onTap,
         controller: controller,
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         maxLines: maxLines,
+        validator: validator, // <<< VALIDATOR ATANDI
         // Koyu arka planda okunaklı olması için metin rengi beyaz
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(color: Colors.grey),
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white70),
+          // Hata metni rengini daha belirgin yaptık
+          errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 13),
           filled: true,
           fillColor: textFieldFillColor, // Şeffaf iç dolgu
           contentPadding: const EdgeInsets.symmetric(
@@ -217,17 +232,27 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             borderSide: const BorderSide(color: focusedBorderColor, width: 2.0),
           ),
 
-          // Varsayılan kenarlık (hata vb.)
+          // Varsayılan kenarlık
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: defaultBorderColor),
+          ),
+          // Hata kenarlığı rengi (validation başarısız olduğunda)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.red, width: 2.0),
           ),
         ),
       ),
     );
   }
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<< TEXTFORMFIELD WIDGET'I SONU <<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-  // >>>>>>>>>>>>>>>>>>>>>>>>>>> DÜZELTİLMİŞ ZAMAN SEÇİCİ FONKSİYONU <<<<<<<<<<<<<<<<<<<<<<<<<<<
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>> ZAMAN SEÇİCİ FONKSİYONU <<<<<<<<<<<<<<<<<<<<<<<<<<<
   Future<String?> _showTimePicker(
     BuildContext context, {
     String? initial,
@@ -265,14 +290,31 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             // 1. Filtrelenmiş saat listesi
-            // minTime'dan büyük saatleri veya minTime'ın saat kısmını alır.
             final List<int> filteredHours = allHours
-                .where((h) => h > minHour || (h == minHour && minMinute == 0))
+                .where(
+                  (h) => h > minHour || (h == minHour && minMinute <= 30),
+                ) // minMinute 0 veya 30 olabilir
                 .toList();
 
             // 2. Eğer başlangıç saati kısıtlamadan önce seçilmişse ve kısıtlamaya aykırıysa, en küçük geçerli saate ayarla
-            if (!filteredHours.contains(tempSelectedHour)) {
+            if (filteredHours.isNotEmpty &&
+                !filteredHours.contains(tempSelectedHour)) {
               tempSelectedHour = filteredHours.first;
+              // Saati de güncelleyince dakikayı minimuma çek (ancak o saatteki en küçük geçerli dakikaya)
+              if (tempSelectedHour == minHour) {
+                tempSelectedMinute = minMinute;
+              } else {
+                tempSelectedMinute = 0;
+              }
+            } else if (filteredHours.isEmpty) {
+              // Eğer seçilebilecek saat yoksa
+              // 18:00'dan sonra başlanıyorsa, boş dönmeli.
+              return Container();
+            }
+
+            // Eğer saat, minimum saate eşitse ve seçili dakika hala kısıtlamanın altındaysa
+            if (tempSelectedHour == minHour && tempSelectedMinute < minMinute) {
+              tempSelectedMinute = minMinute;
             }
 
             // 3. Başlangıç indeksi
@@ -293,10 +335,22 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             int initialMinuteIndex = filteredMinutes.indexOf(
               tempSelectedMinute,
             );
-            if (initialMinuteIndex == -1) initialMinuteIndex = 0;
+            // Bulamazsa ve liste boş değilse ilk öğeyi seç
+            if (initialMinuteIndex == -1 && filteredMinutes.isNotEmpty)
+              initialMinuteIndex = 0;
             if (initialMinuteIndex < 0) initialMinuteIndex = 0;
-            // Not: Bitiş saatini seçerken başlangıç saati ile aynı saati ve dakikayı seçtiğinde initialMinuteIndex'in -1 olmasını önlemek için,
-            // başlangıç saatini geçtikten sonra minMinute = 0 yapılır. Ancak mevcut filtreleme doğru.
+
+            // Seçilen dakikanın filtreye uymaması durumunda, en yakın geçerli dakikaya zorlama (çarkı kaydırır)
+            if (!filteredMinutes.contains(tempSelectedMinute)) {
+              if (filteredMinutes.isNotEmpty) {
+                tempSelectedMinute = filteredMinutes.first;
+              } else {
+                tempSelectedMinute = 0;
+              }
+              // initialMinuteIndex'i tekrar hesapla
+              initialMinuteIndex = filteredMinutes.indexOf(tempSelectedMinute);
+            }
+            if (initialMinuteIndex < 0) initialMinuteIndex = 0;
 
             return Container(
               decoration: const BoxDecoration(
@@ -352,15 +406,17 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                 // Saat değişince dakika kontrolünü tekrar yap
                                 if (tempSelectedHour == minHour &&
                                     tempSelectedMinute < minMinute) {
-                                  // Eğer yeni seçilen saat, minimum saate eşitse
-                                  // ve seçili dakika hala minimum dakikadan küçükse,
-                                  // dakikayı minimum dakikaya sıfırla.
+                                  // Dakikayı minimum dakikaya sıfırla.
                                   tempSelectedMinute = minMinute;
-                                } else if (tempSelectedHour < minHour) {
-                                  // Bu kısım teorik olarak filteredHours sayesinde çalışmayacak,
-                                  // ancak güvenlik amaçlı burada bırakılabilir.
-                                  tempSelectedHour = minHour;
+                                } else if (tempSelectedHour > minHour) {
+                                  // Minimum saatin üzerindeyken dakikayı 0'a çek (opsiyonel ama tutarlılık sağlar)
+                                  tempSelectedMinute = 0;
                                 }
+
+                                // Bitiş saati seçimi için ek kontrol: Eğer başlangıç saati 18:30 ise
+                                // bitiş saati 19:00 olamaz.
+                                // Bu kontrolü burada yapmaya gerek yok, çünkü saat listesi 18:00'da bitiyor (11 element).
+                                // 18:00'da 00 dakika varsa sorun yok.
                               });
                             },
                             children: filteredHours
@@ -375,13 +431,15 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                         // DAKİKA ÇARKI
                         Expanded(
                           child: CupertinoPicker(
+                            // Saat değiştiğinde initialMinuteIndex'i doğru hesaplamak için FixedExtentScrollController'ı
+                            // burada kullanmıyoruz. ListView rebuild olduğunda çark otomatik olarak doğru pozisyona gelecektir.
+                            itemExtent: 32,
+                            // Dakika listesi değişebilir, bu yüzden children'ı filteredMinutes'a bağladık
                             scrollController: FixedExtentScrollController(
                               initialItem: initialMinuteIndex,
                             ),
-                            itemExtent: 32,
                             onSelectedItemChanged: (index) {
                               setState(() {
-                                // setState içinde çağırmalısın ki, saat çarkı değişince dakika çarkı da güncellensin.
                                 tempSelectedMinute = filteredMinutes[index];
                               });
                             },
@@ -405,7 +463,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       },
     );
   }
-  // <<<<<<<<<<<<<<<<<<<<<<<<<<< DÜZELTİLMİŞ ZAMAN SEÇİCİ FONKSİYONU SONU >>>>>>>>>>>>>>>>>>>>>>>>>>>
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<< ZAMAN SEÇİCİ FONKSİYONU SONU >>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   final phoneMask = MaskTextInputFormatter(
     // 0'dan sonra 3 hane (alan kodu), sonra 3, sonra 2, sonra 2 hane: 0(5XX) XXX XX XX
@@ -415,13 +473,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Bu kısım randevunun çakışma kontrolü için. Kodu olduğu gibi bıraktık.
+    // Bu kısım randevunun çakışma kontrolü için.
     final filteredEndTimes = _startTime == null
         ? _timeSlots
         : _timeSlots.where((t) => t.compareTo(_startTime!) >= 0).toList();
 
     return Scaffold(
-      // Sayfa içeriğinin (gradient'in) alt navigasyon çubuğunun arkasına kadar uzamasını sağlar.
       extendBody: true,
       backgroundColor: darkBlue,
 
@@ -452,238 +509,338 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           ),
         ),
 
-        // Tüm formu ListView içine alarak kaydırma ve dinamik boşluk yönetimi sağlıyoruz
-        child: ListView(
-          primary: true,
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(context).viewInsets.bottom +
-                MediaQuery.of(context).padding.bottom +
-                16,
-          ),
-          children: [
-            // Form alanları (buildTextField metodu eski haliyle kalıyor)
-            buildTextField(label: 'İsim Soyisim', controller: isimController),
-            buildTextField(
-              label: 'Telefon',
-              keyboardType: TextInputType.phone,
-              controller: telefonController,
-              inputFormatters: [phoneMask],
+        // 2. ADIM: Form widget'ı ile sarıldı
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.disabled,
+          // GlobalKey atandı
+          child: ListView(
+            primary: true,
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              MediaQuery.of(context).viewInsets.bottom +
+                  MediaQuery.of(context).padding.bottom +
+                  16,
             ),
-            buildTextField(label: 'Araç Bilgisi', controller: aracController),
-            buildTextField(
-              label: 'Tarih',
-              controller: dateController,
-              readOnly: true,
-              onTap: () => _selectDate(context),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: buildTextField(
-                    label: "Başlangıç Saati",
-                    readOnly: true,
-                    controller: TextEditingController(text: _startTime ?? ""),
-                    onTap: () async {
-                      // Veri mantığı olduğu gibi kalıyor
-                      final result = await _showTimePicker(
-                        context,
-                        initial: _startTime,
-                        minTime: '08:00',
-                      );
-                      if (result != null) {
-                        setState(() {
-                          _startTime = result;
-                          // Eğer bitiş saati başlangıç saatinden küçük kalırsa sıfırla
-                          if (_endTime != null &&
-                              _endTime!.compareTo(_startTime!) < 0) {
-                            _endTime = null;
-                          }
-                        });
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: buildTextField(
-                    label: "Bitiş Saati",
-                    readOnly: true,
-                    controller: TextEditingController(text: _endTime ?? ""),
-                    onTap: () async {
-                      // minTime: _startTime ile bitiş saatini başlangıç saatine kısıtlıyoruz
-                      final result = await _showTimePicker(
-                        context,
-                        initial: _endTime,
-                        minTime: _startTime,
-                      );
-                      if (result != null) {
-                        setState(() {
-                          _endTime = result;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
+            children: [
+              // 3. ADIM: buildTextFormField kullanıldı ve validator'lar eklendi
+              buildTextFormField(
+                label: 'İsim Soyisim',
+                controller: isimController,
+                hintText: "Örn: Abdullah ULUCAK",
 
-            buildTextField(
-              label: 'Ücret',
-              keyboardType: TextInputType.number,
-              controller: ucretController,
-            ),
-            buildTextField(
-              label: 'Not',
-              maxLines: 3,
-              controller: notController,
-            ),
-
-            // Butonlar
-            Padding(
-              padding: const EdgeInsets.only(top: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen isim ve soyisim giriniz.';
+                  }
+                  return null;
+                },
+              ),
+              buildTextFormField(
+                label: 'Telefon',
+                keyboardType: TextInputType.phone,
+                controller: telefonController,
+                inputFormatters: [phoneMask],
+                hintText: "Örn: (5xx) xxx xx xx",
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen telefon numarasını giriniz.';
+                  }
+                  if (phoneMask.getUnmaskedText().length != 10) {
+                    return 'Telefon numarası eksik.';
+                  }
+                  return null;
+                },
+              ),
+              buildTextFormField(
+                label: 'Araç Bilgisi',
+                controller: aracController,
+                hintText: "Örn: BMW",
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen araç bilgisini giriniz.';
+                  }
+                  return null;
+                },
+              ),
+              buildTextFormField(
+                label: 'Tarih',
+                controller: dateController,
+                readOnly: true,
+                onTap: () => _selectDate(context),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen bir tarih seçiniz.';
+                  }
+                  return null;
+                },
+              ),
+              Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        // Vazgeç butonu rengini temaya uyumlu yaptık
-                        backgroundColor: Colors.blueGrey.shade700,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 14,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Vazgeç',
-                        // darkBlue'ya tezat renk
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
+                    child: buildTextFormField(
+                      label: "Başlangıç Saati",
+                      readOnly: true,
+                      // TextEditingController'a _startTime'ı atadık
+                      controller: TextEditingController(text: _startTime ?? ""),
+                      validator: (value) {
+                        if (_startTime == null) {
+                          return 'Saat seçin';
+                        }
+                        return null;
+                      },
+                      onTap: () async {
+                        final result = await _showTimePicker(
+                          context,
+                          initial: _startTime,
+                          minTime: '08:00',
+                        );
+                        if (result != null) {
+                          setState(() {
+                            _startTime = result;
+                            // Eğer bitiş saati başlangıç saatinden küçük kalırsa sıfırla
+                            if (_endTime != null &&
+                                _endTime!.compareTo(_startTime!) < 0) {
+                              _endTime = null;
+                            }
+                          });
+                          // Saati seçince bitiş saatini de doğrula
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        // Kaydetme mantığı olduğu gibi kalıyor
-                        if (_startTime == null || _endTime == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Lütfen başlangıç ve bitiş saatini seçin',
-                              ),
-                              backgroundColor: darkBlue,
-                            ),
-                          );
-                          return;
+                    child: buildTextFormField(
+                      label: "Bitiş Saati",
+                      readOnly: true,
+                      // TextEditingController'a _endTime'ı atadık
+                      controller: TextEditingController(text: _endTime ?? ""),
+                      validator: (value) {
+                        if (_endTime == null) {
+                          return 'Saat seçin';
                         }
-
-                        final tarihParts = dateController.text.split('/');
-                        final gunTarihi = DateTime(
-                          int.parse(tarihParts[2]),
-                          int.parse(tarihParts[1]),
-                          int.parse(tarihParts[0]),
-                        );
-                        final gunAdi = gunler[gunTarihi.weekday - 1];
-
-                        final newStart = DateTime(
-                          gunTarihi.year,
-                          gunTarihi.month,
-                          gunTarihi.day,
-                          int.parse(_startTime!.split(':')[0]),
-                          int.parse(_startTime!.split(':')[1]),
-                        );
-
-                        final newEnd = DateTime(
-                          gunTarihi.year,
-                          gunTarihi.month,
-                          gunTarihi.day,
-                          int.parse(_endTime!.split(':')[0]),
-                          int.parse(_endTime!.split(':')[1]),
-                        );
-
-                        // DatabaseService() kısmını kullanabilmen için DatabaseService sınıfının olması gerekir.
-                        // Eğer yoksa bu kısım hata verir.
-                        final existingAppointments = await DatabaseService()
-                            .getAppointmentsByDate(dateController.text);
-
-                        for (var appt in existingAppointments) {
-                          if (widget.appointmentData != null &&
-                              appt['id'] == widget.appointmentData!['id'])
-                            continue;
-
-                          final existingStart = DateTime(
-                            gunTarihi.year,
-                            gunTarihi.month,
-                            gunTarihi.day,
-                            int.parse(appt['baslangic'].split(':')[0]),
-                            int.parse(appt['baslangic'].split(':')[1]),
-                          );
-                          final existingEnd = DateTime(
-                            gunTarihi.year,
-                            gunTarihi.month,
-                            gunTarihi.day,
-                            int.parse(appt['bitis'].split(':')[0]),
-                            int.parse(appt['bitis'].split(':')[1]),
-                          );
-
-                          if (newStart.isBefore(existingEnd) &&
-                              existingStart.isBefore(newEnd)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Bu saatler arasında başka bir randevu var.',
-                                ),
-                                backgroundColor: darkBlue,
-                              ),
-                            );
-                            return;
-                          }
+                        if (_startTime == null) {
+                          return 'Başlangıç saatini seçin';
                         }
-
-                        // Kaydedilecek randevu
-                        final appointment = {
-                          "isimSoyisim": isimController.text,
-                          "telefon": telefonController.text,
-                          "arac": aracController.text,
-                          "tarih": dateController.text,
-                          "baslangic": _startTime,
-                          "bitis": _endTime,
-                          "ucret": ucretController.text,
-                          "aciklama": notController.text,
-                          "gun": gunAdi,
-                        };
-
-                        Navigator.pop(context, appointment);
+                        // Bitiş saati başlangıç saatinden kesinlikle büyük olmalı
+                        if (_endTime!.compareTo(_startTime!) <= 0) {
+                          return 'Geçersiz saat aralığı.';
+                        }
+                        return null;
                       },
-                      style: ElevatedButton.styleFrom(
-                        // Kaydet butonu için canlı sarı/turuncu rengi kullandık
-                        backgroundColor: const Color.fromRGBO(255, 191, 0, 1.0),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 14,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Kaydet',
-                        style: TextStyle(color: darkBlue, fontSize: 16),
-                      ),
+                      onTap: () async {
+                        // minTime: _startTime ile bitiş saatini başlangıç saatine kısıtlıyoruz
+                        final result = await _showTimePicker(
+                          context,
+                          initial: _endTime,
+                          minTime:
+                              _startTime ??
+                              '08:00', // Başlangıç seçilmediyse 08:00 min olsun
+                        );
+                        if (result != null) {
+                          setState(() {
+                            _endTime = result;
+                          });
+                        }
+                      },
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+
+              buildTextFormField(
+                label: 'Ücret',
+                keyboardType: TextInputType.number,
+                hintText: "Örn: 2500",
+                controller: ucretController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null;
+                  }
+                  if (double.tryParse(value.replaceAll(',', '.')) == null) {
+                    return 'Geçerli bir sayı giriniz.';
+                  }
+                  return null;
+                },
+              ),
+              buildTextFormField(
+                label: 'Not',
+                maxLines: 3,
+                hintText: "Örn: iç dış yıkama ",
+                controller: notController,
+                validator: (value) {
+                  // Not zorunlu değil
+                  return null;
+                },
+              ),
+
+              // Butonlar
+              Padding(
+                padding: const EdgeInsets.only(top: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          // Vazgeç butonu rengini temaya uyumlu yaptık
+                          backgroundColor: Colors.blueGrey.shade700,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Vazgeç',
+                          // darkBlue'ya tezat renk
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // 4. ADIM: Kaydetmeden önce tüm formu doğrula
+                          if (_formKey.currentState!.validate()) {
+                            // Ek olarak saatlerin seçilip seçilmediğini (ve saat validator'larının hata vermediğini) kontrol et
+                            if (_startTime == null || _endTime == null) {
+                              // Bu kontrol, TextFormField validator'ları sayesinde zaten yakalanmalı, ama ek güvenlik
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Lütfen başlangıç ve bitiş saatini seçin',
+                                  ),
+                                  backgroundColor: darkBlue,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Randevu çakışma kontrolü... (Kodun geri kalanı)
+                            final tarihParts = dateController.text.split('/');
+                            final gunTarihi = DateTime(
+                              int.parse(tarihParts[2]),
+                              int.parse(tarihParts[1]),
+                              int.parse(tarihParts[0]),
+                            );
+                            final gunAdi = gunler[gunTarihi.weekday - 1];
+
+                            final newStart = DateTime(
+                              gunTarihi.year,
+                              gunTarihi.month,
+                              gunTarihi.day,
+                              int.parse(_startTime!.split(':')[0]),
+                              int.parse(_startTime!.split(':')[1]),
+                            );
+
+                            final newEnd = DateTime(
+                              gunTarihi.year,
+                              gunTarihi.month,
+                              gunTarihi.day,
+                              int.parse(_endTime!.split(':')[0]),
+                              int.parse(_endTime!.split(':')[1]),
+                            );
+
+                            // DatabaseService() kısmını kullanabilmen için DatabaseService sınıfının olması gerekir.
+                            final existingAppointments = await DatabaseService()
+                                .getAppointmentsByDate(dateController.text);
+
+                            for (var appt in existingAppointments) {
+                              if (widget.appointmentData != null &&
+                                  appt['id'] == widget.appointmentData!['id'])
+                                continue;
+
+                              final existingStart = DateTime(
+                                gunTarihi.year,
+                                gunTarihi.month,
+                                gunTarihi.day,
+                                int.parse(appt['baslangic'].split(':')[0]),
+                                int.parse(appt['baslangic'].split(':')[1]),
+                              );
+                              final existingEnd = DateTime(
+                                gunTarihi.year,
+                                gunTarihi.month,
+                                gunTarihi.day,
+                                int.parse(appt['bitis'].split(':')[0]),
+                                int.parse(appt['bitis'].split(':')[1]),
+                              );
+
+                              // Çakışma kontrolü: [newStart, newEnd) ve [existingStart, existingEnd)
+                              if (newStart.isBefore(existingEnd) &&
+                                  existingStart.isBefore(newEnd)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Bu saatler arasında başka bir randevu var.',
+                                    ),
+                                    backgroundColor: darkBlue,
+                                  ),
+                                );
+                                return;
+                              }
+                            }
+
+                            // Doğrulama başarılıysa randevuyu kaydet
+                            final appointment = {
+                              "isimSoyisim": isimController.text,
+                              "telefon": telefonController.text,
+                              "arac": aracController.text,
+                              "tarih": dateController.text,
+                              "baslangic": _startTime,
+                              "bitis": _endTime,
+                              "ucret": ucretController.text,
+                              "aciklama": notController.text,
+                              "gun": gunAdi,
+                            };
+
+                            Navigator.pop(context, appointment);
+                          } else {
+                            // Doğrulama başarısız olursa kullanıcıya geri bildirim ver
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Lütfen formdaki eksik veya hatalı alanları doldurunuz.',
+                                ),
+                                backgroundColor: darkBlue,
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          // Kaydet butonu için canlı sarı/turuncu rengi kullandık
+                          backgroundColor: const Color.fromRGBO(
+                            255,
+                            191,
+                            0,
+                            1.0,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Kaydet',
+                          style: TextStyle(color: darkBlue, fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
