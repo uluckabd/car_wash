@@ -287,178 +287,185 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return await showCupertinoModalPopup<String>(
       context: context,
       builder: (BuildContext innerContext) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            // 1. Filtrelenmiş saat listesi
-            final List<int> filteredHours = allHours
-                .where(
-                  (h) => h > minHour || (h == minHour && minMinute <= 30),
-                ) // minMinute 0 veya 30 olabilir
-                .toList();
+        return SafeArea(
+          top: false,
+          bottom: true,
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              // 1. Filtrelenmiş saat listesi
+              final List<int> filteredHours = allHours
+                  .where(
+                    (h) => h > minHour || (h == minHour && minMinute <= 30),
+                  ) // minMinute 0 veya 30 olabilir
+                  .toList();
 
-            // 2. Eğer başlangıç saati kısıtlamadan önce seçilmişse ve kısıtlamaya aykırıysa, en küçük geçerli saate ayarla
-            if (filteredHours.isNotEmpty &&
-                !filteredHours.contains(tempSelectedHour)) {
-              tempSelectedHour = filteredHours.first;
-              // Saati de güncelleyince dakikayı minimuma çek (ancak o saatteki en küçük geçerli dakikaya)
-              if (tempSelectedHour == minHour) {
+              // 2. Eğer başlangıç saati kısıtlamadan önce seçilmişse ve kısıtlamaya aykırıysa, en küçük geçerli saate ayarla
+              if (filteredHours.isNotEmpty &&
+                  !filteredHours.contains(tempSelectedHour)) {
+                tempSelectedHour = filteredHours.first;
+                // Saati de güncelleyince dakikayı minimuma çek (ancak o saatteki en küçük geçerli dakikaya)
+                if (tempSelectedHour == minHour) {
+                  tempSelectedMinute = minMinute;
+                } else {
+                  tempSelectedMinute = 0;
+                }
+              } else if (filteredHours.isEmpty) {
+                // Eğer seçilebilecek saat yoksa
+                // 18:00'dan sonra başlanıyorsa, boş dönmeli.
+                return Container();
+              }
+
+              // Eğer saat, minimum saate eşitse ve seçili dakika hala kısıtlamanın altındaysa
+              if (tempSelectedHour == minHour &&
+                  tempSelectedMinute < minMinute) {
                 tempSelectedMinute = minMinute;
-              } else {
-                tempSelectedMinute = 0;
               }
-            } else if (filteredHours.isEmpty) {
-              // Eğer seçilebilecek saat yoksa
-              // 18:00'dan sonra başlanıyorsa, boş dönmeli.
-              return Container();
-            }
 
-            // Eğer saat, minimum saate eşitse ve seçili dakika hala kısıtlamanın altındaysa
-            if (tempSelectedHour == minHour && tempSelectedMinute < minMinute) {
-              tempSelectedMinute = minMinute;
-            }
+              // 3. Başlangıç indeksi
+              int initialHourIndex = filteredHours.indexOf(tempSelectedHour);
+              if (initialHourIndex == -1) initialHourIndex = 0;
 
-            // 3. Başlangıç indeksi
-            int initialHourIndex = filteredHours.indexOf(tempSelectedHour);
-            if (initialHourIndex == -1) initialHourIndex = 0;
+              // 4. Dakika listesi
+              final List<int> filteredMinutes = minutes.where((m) {
+                if (tempSelectedHour == minHour) {
+                  // Eğer seçilen saat, minimum saate eşitse, minimum dakikadan büyük veya eşit dakikaları göster.
+                  return m >= minMinute;
+                }
+                // Aksi takdirde (minimum saatten büyükse), tüm dakikaları göster.
+                return true;
+              }).toList();
 
-            // 4. Dakika listesi
-            final List<int> filteredMinutes = minutes.where((m) {
-              if (tempSelectedHour == minHour) {
-                // Eğer seçilen saat, minimum saate eşitse, minimum dakikadan büyük veya eşit dakikaları göster.
-                return m >= minMinute;
+              // 5. Dakika başlangıç indeksi
+              int initialMinuteIndex = filteredMinutes.indexOf(
+                tempSelectedMinute,
+              );
+              // Bulamazsa ve liste boş değilse ilk öğeyi seç
+              if (initialMinuteIndex == -1 && filteredMinutes.isNotEmpty)
+                initialMinuteIndex = 0;
+              if (initialMinuteIndex < 0) initialMinuteIndex = 0;
+
+              // Seçilen dakikanın filtreye uymaması durumunda, en yakın geçerli dakikaya zorlama (çarkı kaydırır)
+              if (!filteredMinutes.contains(tempSelectedMinute)) {
+                if (filteredMinutes.isNotEmpty) {
+                  tempSelectedMinute = filteredMinutes.first;
+                } else {
+                  tempSelectedMinute = 0;
+                }
+                // initialMinuteIndex'i tekrar hesapla
+                initialMinuteIndex = filteredMinutes.indexOf(
+                  tempSelectedMinute,
+                );
               }
-              // Aksi takdirde (minimum saatten büyükse), tüm dakikaları göster.
-              return true;
-            }).toList();
+              if (initialMinuteIndex < 0) initialMinuteIndex = 0;
 
-            // 5. Dakika başlangıç indeksi
-            int initialMinuteIndex = filteredMinutes.indexOf(
-              tempSelectedMinute,
-            );
-            // Bulamazsa ve liste boş değilse ilk öğeyi seç
-            if (initialMinuteIndex == -1 && filteredMinutes.isNotEmpty)
-              initialMinuteIndex = 0;
-            if (initialMinuteIndex < 0) initialMinuteIndex = 0;
-
-            // Seçilen dakikanın filtreye uymaması durumunda, en yakın geçerli dakikaya zorlama (çarkı kaydırır)
-            if (!filteredMinutes.contains(tempSelectedMinute)) {
-              if (filteredMinutes.isNotEmpty) {
-                tempSelectedMinute = filteredMinutes.first;
-              } else {
-                tempSelectedMinute = 0;
-              }
-              // initialMinuteIndex'i tekrar hesapla
-              initialMinuteIndex = filteredMinutes.indexOf(tempSelectedMinute);
-            }
-            if (initialMinuteIndex < 0) initialMinuteIndex = 0;
-
-            return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
                 ),
-              ),
-              // Yüksekliği Tamam butonu için yer açacak şekilde biraz artırıyoruz
-              height: 250,
+                // Yüksekliği Tamam butonu için yer açacak şekilde biraz artırıyoruz
+                height: 250,
 
-              child: Column(
-                children: [
-                  // YENİ BAŞLIK VE TAMAM BUTONU
-                  Padding(
-                    // Sağ üstte boşluk bırakmak için
-                    padding: const EdgeInsets.only(right: 8.0, top: 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end, // Sağa yasla
-                      children: [
-                        CupertinoButton(
-                          child: const Text(
-                            "Bitti",
-                            style: TextStyle(color: darkBlue, fontSize: 20),
-                          ),
-                          onPressed: () {
-                            final formatted =
-                                '${tempSelectedHour.toString().padLeft(2, '0')}:${tempSelectedMinute.toString().padLeft(2, '0')}';
-                            Navigator.pop(context, formatted);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // SAAT VE DAKİKA ÇARKLARI
-                  Expanded(
-                    // Kalan alanı doldur
-                    child: Row(
-                      children: [
-                        // SAAT ÇARKI
-                        Expanded(
-                          child: CupertinoPicker(
-                            scrollController: FixedExtentScrollController(
-                              initialItem: initialHourIndex,
+                child: Column(
+                  children: [
+                    // YENİ BAŞLIK VE TAMAM BUTONU
+                    Padding(
+                      // Sağ üstte boşluk bırakmak için
+                      padding: const EdgeInsets.only(right: 8.0, top: 4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end, // Sağa yasla
+                        children: [
+                          CupertinoButton(
+                            child: const Text(
+                              "Bitti",
+                              style: TextStyle(color: darkBlue, fontSize: 20),
                             ),
-                            itemExtent: 32,
-                            onSelectedItemChanged: (index) {
-                              setState(() {
-                                tempSelectedHour = filteredHours[index];
-
-                                // Saat değişince dakika kontrolünü tekrar yap
-                                if (tempSelectedHour == minHour &&
-                                    tempSelectedMinute < minMinute) {
-                                  // Dakikayı minimum dakikaya sıfırla.
-                                  tempSelectedMinute = minMinute;
-                                } else if (tempSelectedHour > minHour) {
-                                  // Minimum saatin üzerindeyken dakikayı 0'a çek (opsiyonel ama tutarlılık sağlar)
-                                  tempSelectedMinute = 0;
-                                }
-
-                                // Bitiş saati seçimi için ek kontrol: Eğer başlangıç saati 18:30 ise
-                                // bitiş saati 19:00 olamaz.
-                                // Bu kontrolü burada yapmaya gerek yok, çünkü saat listesi 18:00'da bitiyor (11 element).
-                                // 18:00'da 00 dakika varsa sorun yok.
-                              });
+                            onPressed: () {
+                              final formatted =
+                                  '${tempSelectedHour.toString().padLeft(2, '0')}:${tempSelectedMinute.toString().padLeft(2, '0')}';
+                              Navigator.pop(context, formatted);
                             },
-                            children: filteredHours
-                                .map(
-                                  (h) => Center(
-                                    child: Text(h.toString().padLeft(2, '0')),
-                                  ),
-                                )
-                                .toList(),
                           ),
-                        ),
-                        // DAKİKA ÇARKI
-                        Expanded(
-                          child: CupertinoPicker(
-                            // Saat değiştiğinde initialMinuteIndex'i doğru hesaplamak için FixedExtentScrollController'ı
-                            // burada kullanmıyoruz. ListView rebuild olduğunda çark otomatik olarak doğru pozisyona gelecektir.
-                            itemExtent: 32,
-                            // Dakika listesi değişebilir, bu yüzden children'ı filteredMinutes'a bağladık
-                            scrollController: FixedExtentScrollController(
-                              initialItem: initialMinuteIndex,
-                            ),
-                            onSelectedItemChanged: (index) {
-                              setState(() {
-                                tempSelectedMinute = filteredMinutes[index];
-                              });
-                            },
-                            children: filteredMinutes
-                                .map(
-                                  (m) => Center(
-                                    child: Text(m.toString().padLeft(2, '0')),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+
+                    // SAAT VE DAKİKA ÇARKLARI
+                    Expanded(
+                      // Kalan alanı doldur
+                      child: Row(
+                        children: [
+                          // SAAT ÇARKI
+                          Expanded(
+                            child: CupertinoPicker(
+                              scrollController: FixedExtentScrollController(
+                                initialItem: initialHourIndex,
+                              ),
+                              itemExtent: 32,
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  tempSelectedHour = filteredHours[index];
+
+                                  // Saat değişince dakika kontrolünü tekrar yap
+                                  if (tempSelectedHour == minHour &&
+                                      tempSelectedMinute < minMinute) {
+                                    // Dakikayı minimum dakikaya sıfırla.
+                                    tempSelectedMinute = minMinute;
+                                  } else if (tempSelectedHour > minHour) {
+                                    // Minimum saatin üzerindeyken dakikayı 0'a çek (opsiyonel ama tutarlılık sağlar)
+                                    tempSelectedMinute = 0;
+                                  }
+
+                                  // Bitiş saati seçimi için ek kontrol: Eğer başlangıç saati 18:30 ise
+                                  // bitiş saati 19:00 olamaz.
+                                  // Bu kontrolü burada yapmaya gerek yok, çünkü saat listesi 18:00'da bitiyor (11 element).
+                                  // 18:00'da 00 dakika varsa sorun yok.
+                                });
+                              },
+                              children: filteredHours
+                                  .map(
+                                    (h) => Center(
+                                      child: Text(h.toString().padLeft(2, '0')),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                          // DAKİKA ÇARKI
+                          Expanded(
+                            child: CupertinoPicker(
+                              // Saat değiştiğinde initialMinuteIndex'i doğru hesaplamak için FixedExtentScrollController'ı
+                              // burada kullanmıyoruz. ListView rebuild olduğunda çark otomatik olarak doğru pozisyona gelecektir.
+                              itemExtent: 32,
+                              // Dakika listesi değişebilir, bu yüzden children'ı filteredMinutes'a bağladık
+                              scrollController: FixedExtentScrollController(
+                                initialItem: initialMinuteIndex,
+                              ),
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  tempSelectedMinute = filteredMinutes[index];
+                                });
+                              },
+                              children: filteredMinutes
+                                  .map(
+                                    (m) => Center(
+                                      child: Text(m.toString().padLeft(2, '0')),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );

@@ -120,55 +120,60 @@ class _MyHomePageState extends State<MyHomePage> {
     await showCupertinoModalPopup(
       context: context,
       builder: (BuildContext builder) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+        return SafeArea(
+          top: false,
+          bottom: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
-          ),
-          height:
-              MediaQuery.of(context).size.height / 3, // Mevcut height'ı koruduk
-          // Arka plan rengini belirle
-          child: Column(
-            children: [
-              // !!! SADECE BU KISIM DEĞİŞTİ: TAMAM BUTONUNU SAĞ ÜSTE TAŞIYORUZ !!!
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end, // Sağa yasla
-                children: [
-                  CupertinoButton(
-                    onPressed: () {
-                      // Buradaki mantık, önceki cevaptaki gibi düzeltildi.
-                      // Menüyü kapatırken seçilen son tarihi (tempPickedDate) atayıp kapatıyoruz.
-                      pickedDate = tempPickedDate;
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Bitti',
-                      style: TextStyle(
-                        color: darkBlue,
-                        fontWeight: FontWeight.bold,
+            height:
+                MediaQuery.of(context).size.height /
+                3, // Mevcut height'ı koruduk
+            // Arka plan rengini belirle
+            child: Column(
+              children: [
+                // !!! SADECE BU KISIM DEĞİŞTİ: TAMAM BUTONUNU SAĞ ÜSTE TAŞIYORUZ !!!
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end, // Sağa yasla
+                  children: [
+                    CupertinoButton(
+                      onPressed: () {
+                        // Buradaki mantık, önceki cevaptaki gibi düzeltildi.
+                        // Menüyü kapatırken seçilen son tarihi (tempPickedDate) atayıp kapatıyoruz.
+                        pickedDate = tempPickedDate;
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Bitti',
+                        style: TextStyle(
+                          color: darkBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-
-              // TARİH ÇARKI (Kalan alanı doldurması için Expanded ile sardık)
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date, // Sadece tarih seçimi
-                  initialDateTime: baseDate,
-                  minimumDate: DateTime(2023),
-                  maximumDate: DateTime(2030),
-                  onDateTimeChanged: (DateTime newDate) {
-                    // Tarih değiştikçe tempPickedDate'i güncelle
-                    tempPickedDate = newDate;
-                  },
+                  ],
                 ),
-              ),
-            ],
+
+                // TARİH ÇARKI (Kalan alanı doldurması için Expanded ile sardık)
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date, // Sadece tarih seçimi
+                    initialDateTime: baseDate,
+                    minimumDate: DateTime(2023),
+                    maximumDate: DateTime(2030),
+                    onDateTimeChanged: (DateTime newDate) {
+                      // Tarih değiştikçe tempPickedDate'i güncelle
+                      tempPickedDate = newDate;
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
