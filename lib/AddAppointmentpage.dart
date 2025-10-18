@@ -32,6 +32,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   final ucretController = TextEditingController();
   final notController = TextEditingController();
   final dateController = TextEditingController();
+  final adresController = TextEditingController();
 
   //Belirli bir zaman aralığı içinde, yarım saatlik dilimler halinde sıralı saat listesi oluşturmaya yarar.
   final List<String> _timeSlots = List.generate(21, (index) {
@@ -68,6 +69,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       ucretController.text = data['ucret'] ?? '';
       notController.text = data['aciklama'] ?? '';
       dateController.text = data['tarih'] ?? '';
+      adresController.text = data['adres'] ?? "";
       _startTime = data['baslangic'];
       _endTime = data['bitis'];
     } else {
@@ -85,6 +87,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     ucretController.dispose();
     notController.dispose();
     dateController.dispose();
+    adresController.dispose();
     super.dispose();
   }
 
@@ -590,6 +593,24 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   return null;
                 },
               ),
+              // Bu kod bloğunu, AddAppointmentScreen'in build metodunda bulun ve güncelleyin.
+              buildTextFormField(
+                label: 'Adres',
+                controller: adresController,
+                hintText: "Örn: Cumhuriyet Mah. No:12 D:5 İstanbul",
+                maxLines: 3,
+                keyboardType: TextInputType.multiline,
+
+                // ⬅️ EK GÜVENLİK: Boş bir liste atayarak başka bir yerden gelen kısıtlamayı eziyoruz.
+                inputFormatters: [],
+
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen adres bilgisi giriniz.';
+                  }
+                  return null;
+                },
+              ),
               buildTextFormField(
                 label: 'Tarih',
                 controller: dateController,
@@ -818,6 +839,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               "isimSoyisim": isimController.text,
                               "telefon": telefonController.text,
                               "arac": aracController.text,
+                              "adres": adresController.text,
                               "tarih": dateController.text,
                               "baslangic": _startTime,
                               "bitis": _endTime,

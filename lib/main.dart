@@ -8,6 +8,7 @@ import 'ArchiveScreen.dart';
 import 'database_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Uygulama genelinde kullanılacak renkleri ve metinleri sabitler olarak tanımlıyoruz.
 const Color primaryColor = Colors.red;
@@ -107,6 +108,215 @@ class _MyHomePageState extends State<MyHomePage> {
       randevular.clear();
       randevular.addAll(loadedAppointments);
     });
+  }
+
+  /// Verilen adresi kullanarak cihazın varsayılan harita uygulamasını açar
+  /// ve navigasyonu başlatır.
+  void _launchNavigation(String address) async {
+    try {
+      // 1. Adresi URL'ye eklemeden önce, özel karakterler için kodluyoruz
+      final encodedAddress = Uri.encodeComponent(address);
+
+      // 2. KESİN ÇALIŞAN A PLANI (iOS ve Android)
+      // https kullanıyoruz çünkü http bazı cihazlarda engelleniyor
+      final String googleMapsUrlString =
+          'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+      final Uri mapsUrl = Uri.parse(googleMapsUrlString);
+
+      // 3. KESİN ÇALIŞAN B PLANI (Android için en güvenilir)
+      final String geoUrlString = 'geo:0,0?q=$encodedAddress';
+      final Uri mapsUrlAlternative = Uri.parse(geoUrlString);
+
+      // 4. Ek olarak Google Navigation fallback (Android özel)
+      final String navUrlString = 'google.navigation:q=$encodedAddress&mode=d';
+      final Uri navUrl = Uri.parse(navUrlString);
+
+      debugPrint('A Planı URL\'si: $googleMapsUrlString');
+      debugPrint('B Planı URL\'si: $geoUrlString');
+      debugPrint('C Planı (Navigation) URL\'si: $navUrlString');
+
+      // Önce A Planını (Google Maps URL) dene
+      if (await canLaunchUrl(mapsUrl)) {
+        await launchUrl(mapsUrl, mode: LaunchMode.externalApplication);
+      }
+      // A Planı başarısız olursa B Planını (Navigation şeması) dene
+      else if (await canLaunchUrl(navUrl)) {
+        await launchUrl(navUrl, mode: LaunchMode.externalApplication);
+      }
+      // O da başarısızsa Geo şemasını dene
+      else if (await canLaunchUrl(mapsUrlAlternative)) {
+        await launchUrl(
+          mapsUrlAlternative,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+      // Hiçbiri çalışmazsa kullanıcıya mesaj göster
+      else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Hata: Navigasyon başlatılamıyor. Lütfen cihazınızda bir harita uygulaması (Google Maps/Apple Maps) olduğundan emin olun.',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Navigasyon hatası: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bir hata oluştu.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Bu fonksiyonu _AddAppointmentScreenState sınıfınızın içine ekleyin.
+
+  /// Randevu detaylarına göre arama ve navigasyon seçeneklerini gösteren AlertDialog.
+  void _showContactOptions(Map<String, dynamic> randevuBilgisi) {
+    // Gerekli verileri Map'ten çekiyoruz
+    final String telefon = randevuBilgisi['telefon'] ?? '';
+    final String adres = randevuBilgisi['adres'] ?? '';
+    final String isim = randevuBilgisi['isimSoyisim'] ?? 'Müşteri İşlemleri';
+
+    debugPrint(
+      'Gelen Adres Key/Value: ${randevuBilgisi['adres']} | Alınan Adres: $adres',
+    );
+
+    // Maskelenmiş telefon numarasını sadeleştir (yalnızca rakamlar kalsın)
+    final rawPhoneNumber = telefon.replaceAll(RegExp(r'[^\d]'), '');
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Ekran genişliğinin %90'ını hesapla
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth * 0.9;
+
+        return Dialog(
+          // 👈 AlertDialog yerine Dialog kullanmak daha esnektir
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white,
+
+          // 💡 YATAY UZAMAYI SAĞLAYAN WIDGET 💡
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: dialogWidth, // Hesapladığımız genişliği uygula
+            ),
+
+            // İçerik (eski AlertDialog yapısı)
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Yine de dikeyde küçülsün
+              crossAxisAlignment:
+                  CrossAxisAlignment.stretch, // İçerik yatayda gerilsin
+              children: <Widget>[
+                // BAŞLIK KISMI
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                  child: Text(
+                    isim,
+                    style: const TextStyle(
+                      color: darkBlue,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20, // Başlığı biraz büyüttük
+                    ),
+                  ),
+                ),
+
+                // İÇERİK: İŞLEM SEÇENEKLERİ
+                const SizedBox(height: 10), // Başlık ile içerik arasına boşluk
+                // 1. ARA Seçeneği (ListTile)
+                ListTile(
+                  leading: const Icon(Icons.phone, color: Colors.green),
+                  title: const Text(
+                    'Ara',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    telefon.isEmpty ? 'Telefon bilgisi yok' : telefon,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  onTap: telefon.isEmpty
+                      ? null // Telefon yoksa tıklanamaz
+                      : () {
+                          Navigator.pop(context); // Dialog'u kapat
+                          _makePhoneCall(
+                            rawPhoneNumber,
+                          ); // Arama fonksiyonunu çağır
+                        },
+                ),
+
+                const Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                ), // Ayırıcıyı daha estetik yaptık
+                // 2. NAVİGASYON Seçeneği (ListTile)
+                ListTile(
+                  leading: const Icon(Icons.navigation, color: Colors.blue),
+                  title: const Text(
+                    'Navigasyon',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    adres.isEmpty
+                        ? 'Adres bilgisi yok'
+                        : (adres.length > 35
+                              ? adres.substring(0, 32) + '...'
+                              : adres),
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  onTap: adres.isEmpty
+                      ? null // Adres yoksa tıklanamaz
+                      : () {
+                          Navigator.pop(context); // Dialog'u kapat
+                          _launchNavigation(
+                            adres,
+                          ); // Navigasyon fonksiyonunu çağır
+                        },
+                ),
+
+                // BUTON KISMI (Actions bloğunun yerini aldı)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        child: const Text(
+                          'Kapat',
+                          style: TextStyle(
+                            color: darkBlue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -294,12 +504,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // onTap ve diğer işlevsellikler olduğu gibi korunuyor.
           onTap: () {
             if (doluMu) {
-              final String telefon = randevuBilgi['telefon'] ?? '';
-              final rawPhoneNumber = telefon.replaceAll(RegExp(r'[^\d]'), '');
-              _makePhoneCall(rawPhoneNumber);
-            } else {
-              // Boş randevu için işlem (örn: Ekleme ekranına git)
-              // FAB aktif olduğu için bu kısımda bir aksiyon bırakılmadı.
+              // doluMu ve randevuBilgi değişkenleri sizin listenizin state'ine bağlı olmalı
+              _showContactOptions(randevuBilgi);
             }
           },
 
