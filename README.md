@@ -1,16 +1,18 @@
-# car_wash
+# ✨ **car_wash** - Mobil Oto Yıkama Rezervasyon Sistemi
 
-A new Flutter project.
+**CarWash Uygulaması ile**, işletmeler **randevu karmaşasına** son verir, tüm müşteri akışını **dijital ortamda dinamik olarak** yönetir, doluluk oranlarını optimize ederek **verimliliği artırır** ve böylece müşterilerine **daha hızlı ve düzenli** bir hizmet sunar.
 
-## Getting Started
+---
+## 🚀 **Öne Çıkan Özellikler** 🔥
 
-This project is a starting point for a Flutter application.
+- **Geçmiş İşlem Veri Analizi**: Tüm eski rezervasyon ve hizmet kayıtlarını, fiyat değişimlerini ve ücret detaylarını **güvenli bir şekilde depolar**
+  
+- **Konum Bazlı Hızlı Yönlendirme**: Müşteri adresine uygulamadan kayıtlı adresi çekerek **hızlı bir şekilde navigasyon ile yönlendirmeyi sağlar**.
 
-A few resources to get you started if this is your first Flutter project:
+- **Tek Tık ile Arama**: Müşteri ile iletişime geçmek için uygulamada **randevu oluştururken kaydedilmiş telefon numarasını tek tık ile aramayı sağlar**.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Hızlı Kayıt Erişimi**: Uygulama içindeki gelişmiş arama çubuğu sayesinde, geçmişte oluşturduğunuz tüm randevular, hizmet detayları ve işlemler arasından **istediğiniz kaydı saniyeler içinde kolayca bulun**. 
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+  
+---
+
